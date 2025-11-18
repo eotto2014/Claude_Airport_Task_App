@@ -7,7 +7,12 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nIntegrate Supabase backend for Airport Task Management Application\n\nMajor updates:\n- Replace localStorage with Supabase PostgreSQL database\n- Add real-time synchronization across multiple users\n- Create complete project structure with Vite + React + TypeScript\n- Implement full CRUD operations with Supabase client\n- Add database schema with tables for tasks, remarks, team members, and equipment\n- Configure Row Level Security policies\n- Add real-time subscriptions for live updates\n- Update component with TypeScript types and async operations\n- Add loading states and error handling\n- Remove \"BANANA\" test button, replace with proper Print button\n- Create comprehensive README and SETUP documentation\n- Add .gitignore to exclude credentials and build artifacts\n\nFeatures:\n- Tasks with categories, priorities, statuses, and recurring schedules\n- Team member and equipment management\n- Task remarks/comments system\n- Advanced filtering and views\n- Print-friendly reports\n- Real-time multi-user collaboration\n\nTech Stack:\n- React 18 + TypeScript\n- Tailwind CSS\n- Supabase (PostgreSQL + Real-time)\n- Vite\n\n🤖 Generated with Claude Code\nhttps://claude.com/claude-code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git push:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm install:*)",
+      "Bash(node migrate-db.js:*)",
+      "Bash(where:*)",
+      "Bash(choco install:*)",
+      "Bash(node check-db.js:*)"
     ],
     "deny": [],
     "ask": []
