@@ -17,7 +17,7 @@ You need to add your Supabase credentials as GitHub secrets so the build process
 4. Click **New repository secret**
 5. Add the first secret:
    - Name: `VITE_SUPABASE_URL`
-   - Value: `https://qpfhynhqdubjbloboqmk.supabase.com`
+   - Value: `https://qpfhynhqdubjbloboqmk.supabase.co`
    - Click **Add secret**
 6. Click **New repository secret** again
 7. Add the second secret:

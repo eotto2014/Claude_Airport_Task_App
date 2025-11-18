@@ -8,7 +8,7 @@ Before running the application, you need to set up the database tables in Supaba
 
 1. Open your web browser and go to [https://supabase.com](https://supabase.com)
 2. Sign in to your account
-3. Select your project: **qpfhynhqdubjbloboqmk.supabase.co**
+3. Select your project: **qpfhynhqdubjbloboqmk** (URL: https://qpfhynhqdubjbloboqmk.supabase.co)
 4. In the left sidebar, click on the **SQL Editor** icon (looks like a terminal/console)
 5. Click **New Query**
 6. Open the file `supabase-schema.sql` from this project
