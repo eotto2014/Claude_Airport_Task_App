@@ -1,9 +1,4 @@
-# Secret files - DO NOT COMMIT
-pub.key.txt
-pub.secretkey.txt
-supabaseurl.txt
-
-# Node modules
+# Dependencies
 node_modules/
 
 # Build output
@@ -13,14 +8,31 @@ build/
 # Environment variables
 .env
 .env.local
-.env.*.local
+.env.production
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+.cache/
+
+# Supabase credentials (keep in separate files)
+pub.key.txt
+pub.secretkey.txt
+supabaseurl.txt
