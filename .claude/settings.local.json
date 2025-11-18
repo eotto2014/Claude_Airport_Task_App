@@ -12,7 +12,8 @@
       "Bash(node migrate-db.js:*)",
       "Bash(where:*)",
       "Bash(choco install:*)",
-      "Bash(node check-db.js:*)"
+      "Bash(node check-db.js:*)",
+      "Bash(node check-db-admin.js:*)"
     ],
     "deny": [],
     "ask": []
