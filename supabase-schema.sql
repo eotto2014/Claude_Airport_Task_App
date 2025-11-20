@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   notes TEXT,
   is_recurring BOOLEAN DEFAULT FALSE,
   recurring_interval TEXT,
+  is_major_task BOOLEAN DEFAULT FALSE,
+  parent_task_id BIGINT REFERENCES tasks(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   completed_at TIMESTAMP WITH TIME ZONE,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -98,6 +100,7 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON tasks(parent_task_id);
 CREATE INDEX IF NOT EXISTS idx_task_remarks_task_id ON task_remarks(task_id);
 
 -- Create updated_at trigger function

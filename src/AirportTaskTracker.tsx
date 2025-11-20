@@ -38,6 +38,8 @@ const AirportTaskTracker = () => {
     notes: '',
     isRecurring: false,
     recurringInterval: 'weekly',
+    isMajorTask: false,
+    parentTaskId: null as number | null,
   });
 
   const categories = [
@@ -110,13 +112,37 @@ const AirportTaskTracker = () => {
       remarksMap[remark.task_id].push(remark);
     });
 
-    // Combine tasks with their remarks
-    const tasksWithRemarks = tasksData?.map((task) => ({
+    // Combine tasks with their remarks and organize subtasks
+    const allTasks = tasksData?.map((task) => ({
       ...task,
-      remarks: remarksMap[task.id] || []
+      remarks: remarksMap[task.id] || [],
+      subtasks: []
     })) || [];
 
-    setTasks(tasksWithRemarks);
+    // Organize tasks hierarchically - separate parent tasks and subtasks
+    const parentTasks: Task[] = [];
+    const subtasksMap: { [key: number]: Task[] } = {};
+
+    allTasks.forEach((task) => {
+      if (task.parent_task_id) {
+        // This is a subtask
+        if (!subtasksMap[task.parent_task_id]) {
+          subtasksMap[task.parent_task_id] = [];
+        }
+        subtasksMap[task.parent_task_id].push(task);
+      } else {
+        // This is a parent task or regular task
+        parentTasks.push(task);
+      }
+    });
+
+    // Attach subtasks to their parent tasks
+    const tasksWithSubtasks = parentTasks.map((task) => ({
+      ...task,
+      subtasks: subtasksMap[task.id] || []
+    }));
+
+    setTasks(tasksWithSubtasks);
   };
 
   const loadTeamMembers = async () => {
@@ -186,12 +212,17 @@ const AirportTaskTracker = () => {
       notes: '',
       isRecurring: false,
       recurringInterval: 'weekly',
+      isMajorTask: false,
+      parentTaskId: null,
     });
   };
 
-  const openAddTask = () => {
+  const openAddTask = (parentTaskId: number | null = null) => {
     resetTaskForm();
     setEditingTask(null);
+    if (parentTaskId) {
+      setTaskForm(prev => ({ ...prev, parentTaskId }));
+    }
     setShowTaskModal(true);
   };
 
@@ -207,6 +238,8 @@ const AirportTaskTracker = () => {
       notes: task.notes || '',
       isRecurring: task.is_recurring,
       recurringInterval: task.recurring_interval || 'weekly',
+      isMajorTask: task.is_major_task || false,
+      parentTaskId: task.parent_task_id || null,
     });
     setEditingTask(task);
     setShowTaskModal(true);
@@ -227,6 +260,8 @@ const AirportTaskTracker = () => {
         notes: taskForm.notes || null,
         is_recurring: taskForm.isRecurring,
         recurring_interval: taskForm.isRecurring ? taskForm.recurringInterval : null,
+        is_major_task: taskForm.isMajorTask,
+        parent_task_id: taskForm.parentTaskId || null,
       };
 
       if (editingTask) {
@@ -273,6 +308,15 @@ const AirportTaskTracker = () => {
   const updateTaskStatus = async (id: number, newStatus: string) => {
     const task = tasks.find(t => t.id === id);
     if (!task) return;
+
+    // Check if this is a major task being marked as completed
+    if (task.is_major_task && newStatus === 'completed' && task.subtasks && task.subtasks.length > 0) {
+      const incompleteSubtasks = task.subtasks.filter(st => st.status !== 'completed');
+      if (incompleteSubtasks.length > 0) {
+        alert(`Cannot complete major task "${task.title}" until all ${task.subtasks.length} subtasks are completed. ${incompleteSubtasks.length} subtask(s) remaining.`);
+        return;
+      }
+    }
 
     try {
       // If marking a recurring task as completed, handle it specially
@@ -661,18 +705,27 @@ const AirportTaskTracker = () => {
             filteredTasks.map(task => {
               const categoryInfo = getCategoryInfo(task.category);
               const priorityInfo = getPriorityInfo(task.priority);
+              const isMajorTask = task.is_major_task;
+              const hasSubtasks = task.subtasks && task.subtasks.length > 0;
+              const completedSubtasks = hasSubtasks ? task.subtasks!.filter(st => st.status === 'completed').length : 0;
 
               return (
-                <div key={task.id} className="bg-slate-800 rounded-xl p-5 border border-slate-700 hover:border-slate-600 transition-all task-card">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <span className={`badge ${categoryInfo?.color} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
-                          {categoryInfo?.label}
-                        </span>
-                        <span className={`badge ${priorityInfo?.color} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
-                          {priorityInfo?.label}
-                        </span>
+                <div key={task.id} className={`rounded-xl ${isMajorTask ? 'border-4 border-amber-500 bg-gradient-to-br from-slate-800 to-slate-700' : 'bg-slate-800 border border-slate-700'} hover:border-slate-600 transition-all task-card`}>
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {isMajorTask && (
+                            <span className="badge bg-gradient-to-r from-amber-600 to-orange-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
+                              ⭐ MAJOR TASK
+                            </span>
+                          )}
+                          <span className={`badge ${categoryInfo?.color} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
+                            {categoryInfo?.label}
+                          </span>
+                          <span className={`badge ${priorityInfo?.color} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
+                            {priorityInfo?.label}
+                          </span>
                         {task.assignee && (
                           <span className="badge bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-semibold">
                             👤 {task.assignee}
@@ -700,6 +753,22 @@ const AirportTaskTracker = () => {
                       <h3 className="text-lg font-semibold text-white mb-1">{task.title}</h3>
                       {task.notes && (
                         <p className="text-slate-400 text-sm mb-3">{task.notes}</p>
+                      )}
+
+                      {/* Major Task Progress */}
+                      {isMajorTask && hasSubtasks && (
+                        <div className="mb-3 bg-slate-900 rounded-lg p-3 border border-amber-600">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-amber-200 font-semibold text-sm">Subtask Progress</span>
+                            <span className="text-amber-200 text-sm">{completedSubtasks} / {task.subtasks!.length}</span>
+                          </div>
+                          <div className="w-full bg-slate-700 rounded-full h-2">
+                            <div
+                              className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all"
+                              style={{ width: `${(completedSubtasks / task.subtasks!.length) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
                       )}
 
                       {/* Status Buttons */}
@@ -734,6 +803,16 @@ const AirportTaskTracker = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2 no-print">
+                      {isMajorTask && (
+                        <button
+                          onClick={() => openAddTask(task.id)}
+                          className="text-green-400 hover:text-green-300 p-2 hover:bg-slate-700 rounded-lg transition-all flex items-center gap-1"
+                          title="Add Subtask"
+                        >
+                          <Plus size={20} />
+                          <span className="text-sm">Subtask</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => openRemarksModal(task)}
                         className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-700 rounded-lg transition-all"
@@ -758,6 +837,94 @@ const AirportTaskTracker = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Subtasks */}
+                {hasSubtasks && (
+                  <div className="ml-8 mt-2 space-y-2">
+                    {task.subtasks!.map(subtask => {
+                      const subCategoryInfo = getCategoryInfo(subtask.category);
+                      const subPriorityInfo = getPriorityInfo(subtask.priority);
+
+                      return (
+                        <div key={subtask.id} className="bg-slate-700 rounded-lg p-4 border-l-4 border-cyan-500">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <span className="badge bg-cyan-700 text-white px-2 py-1 rounded text-xs font-semibold">
+                                  📎 SUBTASK
+                                </span>
+                                <span className={`badge ${subCategoryInfo?.color} text-white px-2 py-1 rounded text-xs font-semibold`}>
+                                  {subCategoryInfo?.label}
+                                </span>
+                                <span className={`badge ${subPriorityInfo?.color} text-white px-2 py-1 rounded text-xs font-semibold`}>
+                                  {subPriorityInfo?.label}
+                                </span>
+                                {subtask.assignee && (
+                                  <span className="badge bg-indigo-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                    👤 {subtask.assignee}
+                                  </span>
+                                )}
+                              </div>
+
+                              <h4 className="text-white font-semibold mb-1">{subtask.title}</h4>
+                              {subtask.notes && (
+                                <p className="text-slate-300 text-sm mb-2">{subtask.notes}</p>
+                              )}
+
+                              {/* Subtask Status Buttons */}
+                              <div className="flex items-center gap-2 flex-wrap no-print">
+                                {statuses.map(status => (
+                                  <button
+                                    key={status.id}
+                                    onClick={() => updateTaskStatus(subtask.id, status.id)}
+                                    className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                                      subtask.status === status.id
+                                        ? 'bg-cyan-600 text-white shadow-lg'
+                                        : 'bg-slate-600 text-slate-200 hover:bg-slate-500'
+                                    }`}
+                                  >
+                                    {status.label}
+                                  </button>
+                                ))}
+                              </div>
+
+                              {/* Print-only status for subtasks */}
+                              <div className="print-only">
+                                <p className="text-sm mt-2"><strong>Status:</strong> {getStatusLabel(subtask.status)}</p>
+                              </div>
+                            </div>
+
+                            {/* Subtask Action Buttons */}
+                            <div className="flex gap-2 no-print">
+                              <button
+                                onClick={() => openRemarksModal(subtask)}
+                                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
+                                title="View/Add Remarks"
+                              >
+                                <MessageSquare size={16} />
+                              </button>
+                              <button
+                                onClick={() => openEditTask(subtask)}
+                                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
+                                title="Edit Subtask"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => deleteTask(subtask.id)}
+                                className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
+                                title="Delete Subtask"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
               );
             })
           )}
@@ -887,6 +1054,33 @@ const AirportTaskTracker = () => {
                   </select>
                 )}
               </div>
+
+              {!taskForm.parentTaskId && (
+                <div>
+                  <label className="flex items-center gap-2 text-white font-medium mb-2">
+                    <input
+                      type="checkbox"
+                      checked={taskForm.isMajorTask}
+                      onChange={(e) => setTaskForm({...taskForm, isMajorTask: e.target.checked})}
+                      className="w-4 h-4 rounded"
+                    />
+                    Major Task (can have subtasks)
+                  </label>
+                  {taskForm.isMajorTask && (
+                    <p className="text-sm text-slate-400 mt-1">
+                      This task will be highlighted and can have multiple subtasks. It can only be completed when all subtasks are done.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {taskForm.parentTaskId && (
+                <div className="bg-cyan-900 border border-cyan-700 rounded-lg p-3">
+                  <p className="text-cyan-200 text-sm font-medium">
+                    This is a subtask of a major task
+                  </p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-white font-medium mb-2">Notes</label>

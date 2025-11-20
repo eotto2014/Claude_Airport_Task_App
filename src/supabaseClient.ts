@@ -22,10 +22,13 @@ export interface Task {
   notes: string
   is_recurring: boolean
   recurring_interval: string
+  is_major_task: boolean
+  parent_task_id: number | null
   created_at: string
   completed_at: string | null
   updated_at: string
   remarks?: TaskRemark[]
+  subtasks?: Task[]
 }
 
 export interface TaskRemark {
