@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer } from 'lucide-react';
+import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer, GripVertical, ArrowUpDown } from 'lucide-react';
 import { supabase, Task, TaskRemark, TeamMember, Equipment } from './supabaseClient';
 
 const AirportTaskTracker = () => {
@@ -16,6 +16,9 @@ const AirportTaskTracker = () => {
   const [newRemark, setNewRemark] = useState('');
   const [newTeamMember, setNewTeamMember] = useState('');
   const [newEquipment, setNewEquipment] = useState('');
+  const [sortBy, setSortBy] = useState<'custom' | 'date'>('custom');
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [draggedSubtask, setDraggedSubtask] = useState<Task | null>(null);
 
   // Filters
   const [filters, setFilters] = useState({
@@ -91,7 +94,7 @@ const AirportTaskTracker = () => {
     const { data: tasksData, error: tasksError } = await supabase
       .from('tasks')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('display_order', { ascending: true });
 
     if (tasksError) throw tasksError;
 
@@ -249,7 +252,7 @@ const AirportTaskTracker = () => {
     if (!taskForm.title.trim()) return;
 
     try {
-      const taskData = {
+      const taskData: any = {
         title: taskForm.title,
         category: taskForm.category,
         priority: taskForm.priority,
@@ -272,6 +275,17 @@ const AirportTaskTracker = () => {
 
         if (error) throw error;
       } else {
+        // For new tasks, calculate display_order
+        const { data: existingTasks } = await supabase
+          .from('tasks')
+          .select('display_order')
+          .eq('parent_task_id', taskForm.parentTaskId || null)
+          .order('display_order', { ascending: false })
+          .limit(1);
+
+        const maxOrder = existingTasks && existingTasks.length > 0 ? existingTasks[0].display_order : 0;
+        taskData.display_order = maxOrder + 1;
+
         const { error } = await supabase
           .from('tasks')
           .insert([taskData]);
@@ -303,6 +317,135 @@ const AirportTaskTracker = () => {
       console.error('Error deleting task:', error);
       alert('Error deleting task. Please try again.');
     }
+  };
+
+  // Drag and drop handlers for tasks
+  const handleTaskDragStart = (e: React.DragEvent, task: Task) => {
+    setDraggedTask(task);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleTaskDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleTaskDrop = async (e: React.DragEvent, targetTask: Task) => {
+    e.preventDefault();
+    if (!draggedTask || draggedTask.id === targetTask.id) {
+      setDraggedTask(null);
+      return;
+    }
+
+    // Only allow reordering tasks at the same level (both parent tasks, not subtasks)
+    if (draggedTask.parent_task_id !== targetTask.parent_task_id) {
+      setDraggedTask(null);
+      return;
+    }
+
+    try {
+      const parentTasks = tasks.filter(t => !t.parent_task_id);
+      const draggedIndex = parentTasks.findIndex(t => t.id === draggedTask.id);
+      const targetIndex = parentTasks.findIndex(t => t.id === targetTask.id);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      const reorderedTasks = [...parentTasks];
+      reorderedTasks.splice(draggedIndex, 1);
+      reorderedTasks.splice(targetIndex, 0, draggedTask);
+
+      // Update display_order for all affected tasks
+      const updates = reorderedTasks.map((task, index) => ({
+        id: task.id,
+        display_order: index + 1
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('tasks')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id);
+      }
+
+      loadTasks();
+    } catch (error) {
+      console.error('Error reordering tasks:', error);
+      alert('Error reordering tasks. Please try again.');
+    } finally {
+      setDraggedTask(null);
+    }
+  };
+
+  const handleTaskDragEnd = () => {
+    setDraggedTask(null);
+  };
+
+  // Drag and drop handlers for subtasks
+  const handleSubtaskDragStart = (e: React.DragEvent, subtask: Task) => {
+    setDraggedSubtask(subtask);
+    e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
+  };
+
+  const handleSubtaskDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleSubtaskDrop = async (e: React.DragEvent, targetSubtask: Task, parentTask: Task) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!draggedSubtask || draggedSubtask.id === targetSubtask.id) {
+      setDraggedSubtask(null);
+      return;
+    }
+
+    // Only allow reordering subtasks within the same parent
+    if (draggedSubtask.parent_task_id !== targetSubtask.parent_task_id) {
+      setDraggedSubtask(null);
+      return;
+    }
+
+    try {
+      const subtasks = parentTask.subtasks || [];
+      const draggedIndex = subtasks.findIndex(t => t.id === draggedSubtask.id);
+      const targetIndex = subtasks.findIndex(t => t.id === targetSubtask.id);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      const reorderedSubtasks = [...subtasks];
+      reorderedSubtasks.splice(draggedIndex, 1);
+      reorderedSubtasks.splice(targetIndex, 0, draggedSubtask);
+
+      // Update display_order for all subtasks
+      const updates = reorderedSubtasks.map((subtask, index) => ({
+        id: subtask.id,
+        display_order: index + 1
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from('tasks')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id);
+      }
+
+      loadTasks();
+    } catch (error) {
+      console.error('Error reordering subtasks:', error);
+      alert('Error reordering subtasks. Please try again.');
+    } finally {
+      setDraggedSubtask(null);
+    }
+  };
+
+  const handleSubtaskDragEnd = () => {
+    setDraggedSubtask(null);
+  };
+
+  const toggleSortMode = () => {
+    setSortBy(prev => prev === 'custom' ? 'date' : 'custom');
   };
 
   const updateTaskStatus = async (id: number, newStatus: string) => {
@@ -512,7 +655,7 @@ const AirportTaskTracker = () => {
     const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    return tasks.filter(task => {
+    let filtered = tasks.filter(task => {
       // Tab filter
       const tabMatch = activeTab === 'active' ? task.status !== 'completed' : task.status === 'completed';
       if (!tabMatch) return false;
@@ -550,6 +693,20 @@ const AirportTaskTracker = () => {
 
       return true;
     });
+
+    // Sort based on sort mode
+    if (sortBy === 'date') {
+      filtered = filtered.sort((a, b) => {
+        const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
+        const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+        return dateA - dateB;
+      });
+    } else {
+      // Sort by display_order (custom order)
+      filtered = filtered.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+    }
+
+    return filtered;
   };
 
   const getCategoryInfo = (id: string) => categories.find(c => c.id === id);
@@ -692,6 +849,19 @@ const AirportTaskTracker = () => {
               <option value="week">Due This Week</option>
               <option value="month">Due This Month</option>
             </select>
+
+            <button
+              onClick={toggleSortMode}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                sortBy === 'date'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
+              }`}
+              title={sortBy === 'date' ? 'Click to enable custom order (drag & drop)' : 'Click to sort by due date'}
+            >
+              <ArrowUpDown size={16} />
+              {sortBy === 'date' ? 'Sorted by Date' : 'Custom Order'}
+            </button>
           </div>
         </div>
 
@@ -710,10 +880,29 @@ const AirportTaskTracker = () => {
               const completedSubtasks = hasSubtasks ? task.subtasks!.filter(st => st.status === 'completed').length : 0;
 
               return (
-                <div key={task.id} className={`rounded-xl ${isMajorTask ? 'border-4 border-amber-500 bg-gradient-to-br from-slate-800 to-slate-700' : 'bg-slate-800 border border-slate-700'} hover:border-slate-600 transition-all task-card`}>
+                <div
+                  key={task.id}
+                  draggable={sortBy === 'custom'}
+                  onDragStart={(e) => handleTaskDragStart(e, task)}
+                  onDragOver={handleTaskDragOver}
+                  onDrop={(e) => handleTaskDrop(e, task)}
+                  onDragEnd={handleTaskDragEnd}
+                  className={`rounded-xl ${isMajorTask ? 'border-4 border-amber-500 bg-gradient-to-br from-slate-800 to-slate-700' : 'bg-slate-800 border border-slate-700'} hover:border-slate-600 transition-all task-card ${draggedTask?.id === task.id ? 'opacity-50' : ''}`}
+                >
                   <div className="p-5">
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      {/* Drag Handle */}
+                      {sortBy === 'custom' && (
+                        <div className="cursor-move text-slate-500 hover:text-slate-300 transition-colors no-print pt-1">
+                          <GripVertical size={20} />
+                        </div>
+                      )}
+
                       <div className="flex-1">
+                        {/* Title at the top */}
+                        <h3 className="text-lg font-semibold text-white mb-3">{task.title}</h3>
+
+                        {/* Badges */}
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                           {isMajorTask && (
                             <span className="badge bg-gradient-to-r from-amber-600 to-orange-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg">
@@ -726,34 +915,34 @@ const AirportTaskTracker = () => {
                           <span className={`badge ${priorityInfo?.color} text-white px-3 py-1 rounded-lg text-xs font-semibold`}>
                             {priorityInfo?.label}
                           </span>
-                        {task.assignee && (
-                          <span className="badge bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-                            👤 {task.assignee}
-                          </span>
-                        )}
-                        {task.equipment && (
-                          <span className="badge bg-teal-600 text-white px-2 py-1 rounded-lg text-xs font-semibold">
-                            🔧 {task.equipment}
-                          </span>
-                        )}
-                        {task.is_recurring && (
-                          <span className="badge bg-purple-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
-                            <Repeat size={12} />
-                            {task.recurring_interval}
-                          </span>
-                        )}
-                        {task.due_date && (
-                          <span className="badge bg-slate-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
-                            <Calendar size={12} />
-                            {new Date(task.due_date).toLocaleDateString()}
-                          </span>
-                        )}
-                      </div>
+                          {task.assignee && (
+                            <span className="badge bg-indigo-600 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                              👤 {task.assignee}
+                            </span>
+                          )}
+                          {task.equipment && (
+                            <span className="badge bg-teal-600 text-white px-2 py-1 rounded-lg text-xs font-semibold">
+                              🔧 {task.equipment}
+                            </span>
+                          )}
+                          {task.is_recurring && (
+                            <span className="badge bg-purple-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
+                              <Repeat size={12} />
+                              {task.recurring_interval}
+                            </span>
+                          )}
+                          {task.due_date && (
+                            <span className="badge bg-slate-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
+                              <Calendar size={12} />
+                              {new Date(task.due_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
 
-                      <h3 className="text-lg font-semibold text-white mb-1">{task.title}</h3>
-                      {task.notes && (
-                        <p className="text-slate-400 text-sm mb-3">{task.notes}</p>
-                      )}
+                        {/* Notes */}
+                        {task.notes && (
+                          <p className="text-slate-400 text-sm mb-3">{task.notes}</p>
+                        )}
 
                       {/* Major Task Progress */}
                       {isMajorTask && hasSubtasks && (
@@ -846,9 +1035,28 @@ const AirportTaskTracker = () => {
                       const subPriorityInfo = getPriorityInfo(subtask.priority);
 
                       return (
-                        <div key={subtask.id} className="bg-slate-700 rounded-lg p-4 border-l-4 border-cyan-500">
-                          <div className="flex items-start justify-between gap-4">
+                        <div
+                          key={subtask.id}
+                          draggable={sortBy === 'custom'}
+                          onDragStart={(e) => handleSubtaskDragStart(e, subtask)}
+                          onDragOver={handleSubtaskDragOver}
+                          onDrop={(e) => handleSubtaskDrop(e, subtask, task)}
+                          onDragEnd={handleSubtaskDragEnd}
+                          className={`bg-slate-700 rounded-lg p-4 border-l-4 border-cyan-500 ${draggedSubtask?.id === subtask.id ? 'opacity-50' : ''}`}
+                        >
+                          <div className="flex items-start gap-4">
+                            {/* Drag Handle for Subtasks */}
+                            {sortBy === 'custom' && (
+                              <div className="cursor-move text-slate-500 hover:text-slate-300 transition-colors no-print pt-1">
+                                <GripVertical size={16} />
+                              </div>
+                            )}
+
                             <div className="flex-1">
+                              {/* Subtask Title at the top */}
+                              <h4 className="text-white font-semibold mb-2">{subtask.title}</h4>
+
+                              {/* Badges */}
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <span className="badge bg-cyan-700 text-white px-2 py-1 rounded text-xs font-semibold">
                                   📎 SUBTASK
@@ -866,7 +1074,7 @@ const AirportTaskTracker = () => {
                                 )}
                               </div>
 
-                              <h4 className="text-white font-semibold mb-1">{subtask.title}</h4>
+                              {/* Notes */}
                               {subtask.notes && (
                                 <p className="text-slate-300 text-sm mb-2">{subtask.notes}</p>
                               )}

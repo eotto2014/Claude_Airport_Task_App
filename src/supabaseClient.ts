@@ -24,6 +24,7 @@ export interface Task {
   recurring_interval: string
   is_major_task: boolean
   parent_task_id: number | null
+  display_order: number
   created_at: string
   completed_at: string | null
   updated_at: string
