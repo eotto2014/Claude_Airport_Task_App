@@ -41,7 +41,7 @@ const AirportTaskTracker = () => {
     ownership: 'business',
   });
 
-  const [equipmentViewFilter, setEquipmentViewFilter] = useState<'all' | 'equipment' | 'facilities'>('all');
+  const [equipmentViewFilter, setEquipmentViewFilter] = useState<'all' | 'equipment' | 'facilities' | 'hangars'>('all');
 
   // Parts management state
   const [equipmentParts, setEquipmentParts] = useState<EquipmentPart[]>([]);
@@ -61,15 +61,17 @@ const AirportTaskTracker = () => {
 
   // Facility types
   const facilityTypes = [
-    { id: 'hangar-door', label: 'Hangar Door' },
+    { id: 'building', label: 'Building' },
+    { id: 'hvac-utilities', label: 'HVAC / Utilities' },
     { id: 'fuel-farm', label: 'Fuel Farm' },
-    { id: 'runway-lights', label: 'Runway Lights' },
-    { id: 'hvac', label: 'HVAC System' },
-    { id: 'boiler', label: 'Boiler' },
-    { id: 'facility', label: 'Other Facility' },
   ];
 
-  const allEquipmentTypes = [...vehicleEquipmentTypes, ...facilityTypes];
+  // Hangar types (separate category due to large number of hangars)
+  const hangarTypes = [
+    { id: 'hangar-door', label: 'Hangar Door' },
+  ];
+
+  const allEquipmentTypes = [...vehicleEquipmentTypes, ...facilityTypes, ...hangarTypes];
 
   const ownershipOptions = [
     { id: 'business', label: 'PJC' },
@@ -87,6 +89,15 @@ const AirportTaskTracker = () => {
 
   const isFacilityType = (type: string) => {
     return facilityTypes.some(t => t.id === type);
+  };
+
+  const isHangarType = (type: string) => {
+    return hangarTypes.some(t => t.id === type);
+  };
+
+  // Check if type is facility or hangar (for shared behavior like ownership display)
+  const isFacilityOrHangar = (type: string) => {
+    return isFacilityType(type) || isHangarType(type);
   };
 
   // Filters
@@ -1031,22 +1042,17 @@ const AirportTaskTracker = () => {
         return <Warehouse size={20} />;
       case 'fuel-farm':
         return <Fuel size={20} />;
-      case 'runway-lights':
-        return <Lightbulb size={20} />;
-      case 'hvac':
-        return <Wind size={20} />;
-      case 'boiler':
-        return <Flame size={20} />;
-      case 'facility':
+      case 'building':
         return <Building2 size={20} />;
+      case 'hvac-utilities':
+        return <Wind size={20} />;
       default:
         return <Wrench size={20} />;
     }
   };
 
   const getEquipmentTypeLabel = (type: string) => {
-    const allTypes = [...vehicleEquipmentTypes, ...facilityTypes];
-    return allTypes.find(t => t.id === type)?.label || type;
+    return allEquipmentTypes.find(t => t.id === type)?.label || type;
   };
 
   const getOwnershipLabel = (ownership: string | null) => {
@@ -1243,16 +1249,6 @@ const AirportTaskTracker = () => {
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
             </button>
             <button
-              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
-              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
-                activeTab === 'completed'
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
-              }`}
-            >
-              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
-            </button>
-            <button
               onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
               className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 ${
                 activeTab === 'equipment'
@@ -1262,6 +1258,16 @@ const AirportTaskTracker = () => {
             >
               <Truck size={18} />
               Equipment & Facilities ({equipmentList.length})
+            </button>
+            <button
+              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
+                activeTab === 'completed'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
+              }`}
+            >
+              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
             </button>
           </div>
 
@@ -1650,7 +1656,7 @@ const AirportTaskTracker = () => {
                   }`}
                 >
                   <Truck size={16} />
-                  Equipment ({equipmentList.filter(e => !isFacilityType(e.equipment_type)).length})
+                  Equipment ({equipmentList.filter(e => !isFacilityType(e.equipment_type) && !isHangarType(e.equipment_type)).length})
                 </button>
                 <button
                   onClick={() => setEquipmentViewFilter('facilities')}
@@ -1663,6 +1669,17 @@ const AirportTaskTracker = () => {
                   <Building2 size={16} />
                   Facilities ({equipmentList.filter(e => isFacilityType(e.equipment_type)).length})
                 </button>
+                <button
+                  onClick={() => setEquipmentViewFilter('hangars')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    equipmentViewFilter === 'hangars'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  <Warehouse size={16} />
+                  Hangars ({equipmentList.filter(e => isHangarType(e.equipment_type)).length})
+                </button>
               </div>
             </div>
 
@@ -1671,8 +1688,9 @@ const AirportTaskTracker = () => {
               {equipmentList
                 .filter(equip => {
                   if (equipmentViewFilter === 'all') return true;
-                  if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type);
+                  if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type) && !isHangarType(equip.equipment_type);
                   if (equipmentViewFilter === 'facilities') return isFacilityType(equip.equipment_type);
+                  if (equipmentViewFilter === 'hangars') return isHangarType(equip.equipment_type);
                   return true;
                 })
                 .map(equip => {
@@ -1683,16 +1701,29 @@ const AirportTaskTracker = () => {
                                  isDateExpired(equip.registration_renewal_date) ||
                                  isDateExpired(equip.insurance_expiration);
                 const isFacility = isFacilityType(equip.equipment_type);
+                const isHangar = isHangarType(equip.equipment_type);
+
+                // Determine border and icon colors based on type
+                const getBorderClass = () => {
+                  if (isHangar) return 'border-amber-700 hover:border-amber-500';
+                  if (isFacility) return 'border-purple-700 hover:border-purple-500';
+                  return 'border-slate-700 hover:border-cyan-500';
+                };
+                const getIconColorClass = () => {
+                  if (isHangar) return 'text-amber-400';
+                  if (isFacility) return 'text-purple-400';
+                  return 'text-cyan-400';
+                };
 
                 return (
                   <div
                     key={equip.id}
                     onClick={() => setSelectedEquipment(equip)}
-                    className={`bg-slate-800 rounded-xl p-5 border ${isFacility ? 'border-purple-700 hover:border-purple-500' : 'border-slate-700 hover:border-cyan-500'} cursor-pointer transition-all hover:shadow-lg`}
+                    className={`bg-slate-800 rounded-xl p-5 border ${getBorderClass()} cursor-pointer transition-all hover:shadow-lg`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className={isFacility ? 'text-purple-400' : 'text-cyan-400'}>
+                        <div className={getIconColorClass()}>
                           {getEquipmentIcon(equip.equipment_type)}
                         </div>
                         <div>
@@ -1705,8 +1736,8 @@ const AirportTaskTracker = () => {
                       </span>
                     </div>
 
-                    {/* Ownership for facilities */}
-                    {isFacility && equip.ownership && (
+                    {/* Ownership for facilities and hangars */}
+                    {(isFacility || isHangar) && equip.ownership && (
                       <div className="mb-2 text-sm">
                         <span className="text-slate-500">Owner: </span>
                         <span className="text-slate-300">{getOwnershipLabel(equip.ownership)}</span>
@@ -1742,16 +1773,23 @@ const AirportTaskTracker = () => {
 
               {equipmentList.filter(equip => {
                 if (equipmentViewFilter === 'all') return true;
-                if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type);
+                if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type) && !isHangarType(equip.equipment_type);
                 if (equipmentViewFilter === 'facilities') return isFacilityType(equip.equipment_type);
+                if (equipmentViewFilter === 'hangars') return isHangarType(equip.equipment_type);
                 return true;
               }).length === 0 && (
                 <div className="col-span-full bg-slate-800 rounded-xl p-12 text-center border border-slate-700">
-                  {equipmentViewFilter === 'facilities' ? (
+                  {equipmentViewFilter === 'hangars' ? (
+                    <>
+                      <Warehouse size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No hangars added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add hangar doors to track their maintenance</p>
+                    </>
+                  ) : equipmentViewFilter === 'facilities' ? (
                     <>
                       <Building2 size={48} className="mx-auto text-slate-600 mb-4" />
                       <p className="text-slate-400 text-lg mb-2">No facilities added yet</p>
-                      <p className="text-slate-500 text-sm mb-4">Add facilities like hangar doors, fuel farms, or HVAC systems</p>
+                      <p className="text-slate-500 text-sm mb-4">Add facilities like buildings, fuel farm, or HVAC systems</p>
                     </>
                   ) : equipmentViewFilter === 'equipment' ? (
                     <>
@@ -1779,21 +1817,39 @@ const AirportTaskTracker = () => {
         )}
 
         {/* Equipment Status Sheet View */}
-        {activeTab === 'equipment' && selectedEquipment && (
+        {activeTab === 'equipment' && selectedEquipment && (() => {
+          // Determine styling for selected equipment
+          const getSelectedBorderClass = () => {
+            if (isHangarType(selectedEquipment.equipment_type)) return 'border-amber-700';
+            if (isFacilityType(selectedEquipment.equipment_type)) return 'border-purple-700';
+            return 'border-slate-700';
+          };
+          const getSelectedIconColorClass = () => {
+            if (isHangarType(selectedEquipment.equipment_type)) return 'text-amber-400';
+            if (isFacilityType(selectedEquipment.equipment_type)) return 'text-purple-400';
+            return 'text-cyan-400';
+          };
+          const getBackLabel = () => {
+            if (isHangarType(selectedEquipment.equipment_type)) return 'Hangars';
+            if (isFacilityType(selectedEquipment.equipment_type)) return 'Facilities';
+            return 'Equipment';
+          };
+
+          return (
           <div className="space-y-6">
             {/* Back Button and Header */}
-            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
+            <div className={`bg-slate-800 rounded-xl p-6 border ${getSelectedBorderClass()}`}>
               <button
                 onClick={() => setSelectedEquipment(null)}
                 className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors"
               >
                 <ChevronLeft size={20} />
-                Back to {isFacilityType(selectedEquipment.equipment_type) ? 'Facilities' : 'Equipment'} List
+                Back to {getBackLabel()} List
               </button>
 
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={isFacilityType(selectedEquipment.equipment_type) ? 'text-purple-400' : 'text-cyan-400'}>
+                  <div className={getSelectedIconColorClass()}>
                     {getEquipmentIcon(selectedEquipment.equipment_type)}
                   </div>
                   <div>
@@ -1848,13 +1904,13 @@ const AirportTaskTracker = () => {
             </div>
 
             {/* Admin Data Section */}
-            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
+            <div className={`bg-slate-800 rounded-xl p-6 border ${getSelectedBorderClass()}`}>
               <h3 className="text-lg font-semibold text-white mb-4">
-                {isFacilityType(selectedEquipment.equipment_type) ? 'Facility Details' : 'Equipment Details'}
+                {isFacilityOrHangar(selectedEquipment.equipment_type) ? (isHangarType(selectedEquipment.equipment_type) ? 'Hangar Details' : 'Facility Details') : 'Equipment Details'}
               </h3>
 
-              {/* Facility-specific fields */}
-              {isFacilityType(selectedEquipment.equipment_type) && (
+              {/* Facility and Hangar specific fields */}
+              {isFacilityOrHangar(selectedEquipment.equipment_type) && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
@@ -1887,8 +1943,8 @@ const AirportTaskTracker = () => {
                 </div>
               )}
 
-              {/* Equipment-specific fields */}
-              {!isFacilityType(selectedEquipment.equipment_type) && (
+              {/* Equipment-specific fields (not for facilities or hangars) */}
+              {!isFacilityOrHangar(selectedEquipment.equipment_type) && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {selectedEquipment.year && (
                     <div>
@@ -2115,19 +2171,30 @@ const AirportTaskTracker = () => {
               )}
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* Equipment Edit Modal */}
-      {showEquipmentModal && (
+      {showEquipmentModal && (() => {
+        // Determine modal styling based on equipment type
+        const getModalBorderClass = () => {
+          if (isHangarType(equipmentForm.equipment_type)) return 'border-amber-700';
+          if (isFacilityType(equipmentForm.equipment_type)) return 'border-purple-700';
+          return 'border-slate-700';
+        };
+        const getModalLabel = () => {
+          if (isHangarType(equipmentForm.equipment_type)) return 'Hangar';
+          if (isFacilityType(equipmentForm.equipment_type)) return 'Facility';
+          return 'Equipment';
+        };
+
+        return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} flex flex-col`} style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className={`bg-slate-800 border-b ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-6 flex justify-between items-center flex-shrink-0`}>
+          <div className={`bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border ${getModalBorderClass()} flex flex-col`} style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className={`bg-slate-800 border-b ${getModalBorderClass()} p-6 flex justify-between items-center flex-shrink-0`}>
               <h2 className="text-2xl font-bold text-white">
-                {editingEquipment
-                  ? (isFacilityType(equipmentForm.equipment_type) ? 'Edit Facility' : 'Edit Equipment')
-                  : (isFacilityType(equipmentForm.equipment_type) ? 'Add Facility' : 'Add Equipment')
-                }
+                {editingEquipment ? `Edit ${getModalLabel()}` : `Add ${getModalLabel()}`}
               </h2>
               <button
                 onClick={() => setShowEquipmentModal(false)}
@@ -2140,13 +2207,13 @@ const AirportTaskTracker = () => {
             <div className="p-6 space-y-4 flex-1" style={{overflowY: 'auto'}}>
               <div>
                 <label className="block text-white font-medium mb-2">
-                  {isFacilityType(equipmentForm.equipment_type) ? 'Facility Name *' : 'Equipment Name *'}
+                  {getModalLabel()} Name *
                 </label>
                 <input
                   type="text"
                   value={equipmentForm.name}
                   onChange={(e) => setEquipmentForm({...equipmentForm, name: e.target.value})}
-                  placeholder={isFacilityType(equipmentForm.equipment_type) ? 'Enter facility name...' : 'Enter equipment name...'}
+                  placeholder={`Enter ${getModalLabel().toLowerCase()} name...`}
                   className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
@@ -2165,12 +2232,15 @@ const AirportTaskTracker = () => {
                     <optgroup label="Facilities">
                       {facilityTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                     </optgroup>
+                    <optgroup label="Hangars">
+                      {hangarTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                    </optgroup>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-white font-medium mb-2">
-                    {isFacilityType(equipmentForm.equipment_type) ? 'Condition' : 'Status'}
+                    {isFacilityOrHangar(equipmentForm.equipment_type) ? 'Condition' : 'Status'}
                   </label>
                   <select
                     value={equipmentForm.status}
@@ -2182,8 +2252,8 @@ const AirportTaskTracker = () => {
                 </div>
               </div>
 
-              {/* Facility-specific fields */}
-              {isFacilityType(equipmentForm.equipment_type) && (
+              {/* Facility and Hangar specific fields */}
+              {isFacilityOrHangar(equipmentForm.equipment_type) && (
                 <>
                   <div>
                     <label className="block text-white font-medium mb-2">Ownership</label>
@@ -2201,7 +2271,7 @@ const AirportTaskTracker = () => {
                     <textarea
                       value={equipmentForm.description}
                       onChange={(e) => setEquipmentForm({...equipmentForm, description: e.target.value})}
-                      placeholder="Describe the facility, its purpose, and key details..."
+                      placeholder={`Describe the ${getModalLabel().toLowerCase()}, its purpose, and key details...`}
                       rows={3}
                       className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
@@ -2219,8 +2289,8 @@ const AirportTaskTracker = () => {
                 </>
               )}
 
-              {/* Equipment-specific fields */}
-              {!isFacilityType(equipmentForm.equipment_type) && (
+              {/* Equipment-specific fields (not for facilities or hangars) */}
+              {!isFacilityOrHangar(equipmentForm.equipment_type) && (
                 <>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
@@ -2350,7 +2420,7 @@ const AirportTaskTracker = () => {
               </div>
             </div>
 
-            <div className={`sticky bottom-0 bg-slate-800 border-t ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-4 flex justify-end gap-3 flex-shrink-0`}>
+            <div className={`sticky bottom-0 bg-slate-800 border-t ${getModalBorderClass()} p-4 flex justify-end gap-3 flex-shrink-0`}>
               <button
                 onClick={() => setShowEquipmentModal(false)}
                 className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
@@ -2360,17 +2430,20 @@ const AirportTaskTracker = () => {
               <button
                 onClick={saveEquipment}
                 className={`text-white px-6 py-2 rounded-lg transition-colors ${
-                  isFacilityType(equipmentForm.equipment_type)
+                  isHangarType(equipmentForm.equipment_type)
+                    ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500'
+                    : isFacilityType(equipmentForm.equipment_type)
                     ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'
                     : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
                 }`}
               >
-                {editingEquipment ? 'Save Changes' : (isFacilityType(equipmentForm.equipment_type) ? 'Add Facility' : 'Add Equipment')}
+                {editingEquipment ? 'Save Changes' : `Add ${getModalLabel()}`}
               </button>
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* Add/Edit Task Modal */}
       {showTaskModal && (
