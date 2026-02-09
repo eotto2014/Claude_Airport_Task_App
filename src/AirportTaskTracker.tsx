@@ -117,6 +117,13 @@ const AirportTaskTracker = () => {
     { id: 6, label: 'Saturday' },
   ];
 
+  // Helper function for ordinal suffixes (defined here to avoid initialization order issues)
+  const getOrdinalSuffix = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+  };
+
   const daysOfMonth = Array.from({ length: 31 }, (_, i) => ({
     id: i + 1,
     label: `${i + 1}${getOrdinalSuffix(i + 1)}`,
@@ -1010,12 +1017,6 @@ const AirportTaskTracker = () => {
     }
 
     return filtered;
-  };
-
-  const getOrdinalSuffix = (n: number) => {
-    const s = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return s[(v - 20) % 10] || s[v] || s[0];
   };
 
   const getDayOfWeekLabel = (dayIndex: number | null) => {
