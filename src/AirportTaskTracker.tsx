@@ -112,6 +112,7 @@ const AirportTaskTracker = () => {
     recurringInterval: 'weekly',
     recurringDayOfWeek: 1 as number | null, // Monday default
     recurringDayOfMonth: 1 as number | null, // 1st of month default
+    recurringMonth: 1 as number | null, // January default for annual, 1st month for quarterly
     isMajorTask: false,
     parentTaskId: null as number | null,
   });
@@ -137,6 +138,27 @@ const AirportTaskTracker = () => {
     id: i + 1,
     label: `${i + 1}${getOrdinalSuffix(i + 1)}`,
   }));
+
+  const monthsOfYear = [
+    { id: 1, label: 'January' },
+    { id: 2, label: 'February' },
+    { id: 3, label: 'March' },
+    { id: 4, label: 'April' },
+    { id: 5, label: 'May' },
+    { id: 6, label: 'June' },
+    { id: 7, label: 'July' },
+    { id: 8, label: 'August' },
+    { id: 9, label: 'September' },
+    { id: 10, label: 'October' },
+    { id: 11, label: 'November' },
+    { id: 12, label: 'December' },
+  ];
+
+  const quarterMonths = [
+    { id: 1, label: '1st month (Jan, Apr, Jul, Oct)' },
+    { id: 2, label: '2nd month (Feb, May, Aug, Nov)' },
+    { id: 3, label: '3rd month (Mar, Jun, Sep, Dec)' },
+  ];
 
   const categories = [
     { id: 'fuel-qc', label: 'Fuel Quality Control', color: 'bg-violet-500' },
@@ -414,6 +436,7 @@ const AirportTaskTracker = () => {
       recurringInterval: 'weekly',
       recurringDayOfWeek: 1,
       recurringDayOfMonth: 1,
+      recurringMonth: 1,
       isMajorTask: false,
       parentTaskId: null,
     });
@@ -442,6 +465,7 @@ const AirportTaskTracker = () => {
       recurringInterval: task.recurring_interval || 'weekly',
       recurringDayOfWeek: task.recurring_day_of_week ?? 1,
       recurringDayOfMonth: task.recurring_day_of_month ?? 1,
+      recurringMonth: task.recurring_month ?? 1,
       isMajorTask: task.is_major_task || false,
       parentTaskId: task.parent_task_id || null,
     });
@@ -466,6 +490,7 @@ const AirportTaskTracker = () => {
         recurring_interval: taskForm.isRecurring ? taskForm.recurringInterval : null,
         recurring_day_of_week: taskForm.isRecurring && taskForm.recurringInterval === 'weekly' ? taskForm.recurringDayOfWeek : null,
         recurring_day_of_month: taskForm.isRecurring && ['monthly', 'quarterly', 'annually'].includes(taskForm.recurringInterval) ? taskForm.recurringDayOfMonth : null,
+        recurring_month: taskForm.isRecurring && ['quarterly', 'annually'].includes(taskForm.recurringInterval) ? taskForm.recurringMonth : null,
         is_major_task: taskForm.isMajorTask,
         parent_task_id: taskForm.parentTaskId || null,
       };
@@ -701,17 +726,35 @@ const AirportTaskTracker = () => {
             }
             break;
           case 'quarterly':
-            nextDueDate.setMonth(nextDueDate.getMonth() + 3);
-            if (task.recurring_day_of_month !== null) {
-              const targetDay = Math.min(task.recurring_day_of_month, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate());
-              nextDueDate.setDate(targetDay);
+            // recurring_month: 1, 2, or 3 (which month of each quarter)
+            // Quarters: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
+            {
+              const currentQuarter = Math.floor(nextDueDate.getMonth() / 3);
+              const nextQuarter = (currentQuarter + 1) % 4;
+              const yearOffset = nextQuarter === 0 ? 1 : 0;
+              const quarterMonth = task.recurring_month ?? 1; // 1, 2, or 3
+              const targetMonth = (nextQuarter * 3) + (quarterMonth - 1);
+              nextDueDate.setFullYear(nextDueDate.getFullYear() + yearOffset);
+              nextDueDate.setMonth(targetMonth);
+              if (task.recurring_day_of_month !== null) {
+                const daysInMonth = new Date(nextDueDate.getFullYear(), targetMonth + 1, 0).getDate();
+                const targetDay = Math.min(task.recurring_day_of_month, daysInMonth);
+                nextDueDate.setDate(targetDay);
+              }
             }
             break;
           case 'annually':
-            nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
-            if (task.recurring_day_of_month !== null) {
-              const targetDay = Math.min(task.recurring_day_of_month, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate());
-              nextDueDate.setDate(targetDay);
+            // recurring_month: 1-12 (which month of the year)
+            {
+              nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+              if (task.recurring_month !== null) {
+                nextDueDate.setMonth(task.recurring_month - 1); // Convert 1-12 to 0-11
+              }
+              if (task.recurring_day_of_month !== null) {
+                const daysInMonth = new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate();
+                const targetDay = Math.min(task.recurring_day_of_month, daysInMonth);
+                nextDueDate.setDate(targetDay);
+              }
             }
             break;
         }
@@ -745,6 +788,7 @@ const AirportTaskTracker = () => {
             recurring_interval: task.recurring_interval,
             recurring_day_of_week: task.recurring_day_of_week,
             recurring_day_of_month: task.recurring_day_of_month,
+            recurring_month: task.recurring_month,
           }]);
 
         if (insertError) throw insertError;
@@ -2470,8 +2514,8 @@ const AirportTaskTracker = () => {
                       </div>
                     )}
 
-                    {/* Day of month selector for monthly/quarterly/annually */}
-                    {['monthly', 'quarterly', 'annually'].includes(taskForm.recurringInterval) && (
+                    {/* Day of month selector for monthly */}
+                    {taskForm.recurringInterval === 'monthly' && (
                       <div>
                         <label className="block text-slate-300 text-sm mb-1">Repeat on day</label>
                         <select
@@ -2484,9 +2528,73 @@ const AirportTaskTracker = () => {
                           ))}
                         </select>
                         <p className="text-slate-400 text-xs mt-1">
-                          {taskForm.recurringInterval === 'monthly' && `Monthly on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
-                          {taskForm.recurringInterval === 'quarterly' && `Quarterly on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
-                          {taskForm.recurringInterval === 'annually' && `Annually on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
+                          Monthly on the {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Quarterly: month of quarter + day */}
+                    {taskForm.recurringInterval === 'quarterly' && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-slate-300 text-sm mb-1">Month of quarter</label>
+                          <select
+                            value={taskForm.recurringMonth ?? 1}
+                            onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          >
+                            {quarterMonths.map(qm => (
+                              <option key={qm.id} value={qm.id}>{qm.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-slate-300 text-sm mb-1">Day of month</label>
+                          <select
+                            value={taskForm.recurringDayOfMonth ?? 1}
+                            onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          >
+                            {daysOfMonth.map(day => (
+                              <option key={day.id} value={day.id}>{day.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <p className="text-slate-400 text-xs">
+                          Quarterly on the {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)} of the {quarterMonths.find(q => q.id === taskForm.recurringMonth)?.label.split(' ')[0].toLowerCase()} month
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Annually: month + day */}
+                    {taskForm.recurringInterval === 'annually' && (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-slate-300 text-sm mb-1">Month</label>
+                          <select
+                            value={taskForm.recurringMonth ?? 1}
+                            onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          >
+                            {monthsOfYear.map(month => (
+                              <option key={month.id} value={month.id}>{month.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-slate-300 text-sm mb-1">Day</label>
+                          <select
+                            value={taskForm.recurringDayOfMonth ?? 1}
+                            onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          >
+                            {daysOfMonth.map(day => (
+                              <option key={day.id} value={day.id}>{day.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <p className="text-slate-400 text-xs">
+                          Annually on {monthsOfYear.find(m => m.id === taskForm.recurringMonth)?.label} {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}
                         </p>
                       </div>
                     )}

@@ -24,6 +24,7 @@ export interface Task {
   recurring_interval: string
   recurring_day_of_week: number | null
   recurring_day_of_month: number | null
+  recurring_month: number | null
   is_major_task: boolean
   parent_task_id: number | null
   display_order: number
