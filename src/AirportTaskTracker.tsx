@@ -1189,40 +1189,40 @@ const AirportTaskTracker = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-100 via-cyan-50 to-gray-100 flex items-center justify-center">
-        <div className="text-gray-700 text-xl">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 via-cyan-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-gray-700 rounded-xl shadow-lg p-6 mb-6 border border-cyan-100">
+        <div className="bg-slate-800 rounded-xl shadow-2xl p-6 mb-6 border border-slate-700">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-white mb-1">Airport Operations Task Tracker</h1>
-              <p className="text-gray-400">Manage tasks, track progress, and maintain operations</p>
+              <p className="text-slate-400">Manage tasks, track progress, and maintain operations</p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-all shadow border border-gray-600"
+                className="flex items-center gap-2 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition-all shadow-lg border border-slate-600"
               >
                 <Settings size={20} />
                 Settings
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-all shadow border border-gray-600"
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-500 hover:to-indigo-500 transition-all shadow-lg"
               >
                 <Printer size={20} />
                 Print
               </button>
               <button
                 onClick={() => openAddTask()}
-                className="flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2 rounded-lg hover:from-cyan-400 hover:to-cyan-500 transition-all shadow-lg"
+                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg"
               >
                 <Plus size={20} />
                 Add Task
@@ -1234,34 +1234,34 @@ const AirportTaskTracker = () => {
           <div className="flex justify-center gap-3 py-2 no-print">
             <button
               onClick={() => { setActiveTab('active'); setSelectedEquipment(null); }}
-              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow ${
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
                 activeTab === 'active'
-                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/20 scale-105'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-500 hover:text-white hover:shadow-md border border-gray-600'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
             </button>
             <button
+              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
+                activeTab === 'completed'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
+              }`}
+            >
+              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
+            </button>
+            <button
               onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
-              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow flex items-center gap-2 ${
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 ${
                 activeTab === 'equipment'
-                  ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/20 scale-105'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-500 hover:text-white hover:shadow-md border border-gray-600'
+                  ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-purple-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
               <Truck size={18} />
               Equipment & Facilities ({equipmentList.length})
-            </button>
-            <button
-              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
-              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow ${
-                activeTab === 'completed'
-                  ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/20 scale-105'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-500 hover:text-white hover:shadow-md border border-gray-600'
-              }`}
-            >
-              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
             </button>
           </div>
 
@@ -1277,12 +1277,12 @@ const AirportTaskTracker = () => {
         {/* Filters and Tasks List - only show on task tabs */}
         {activeTab !== 'equipment' && (
         <>
-        <div className="bg-gray-700 rounded-xl shadow p-4 mb-6 border border-gray-600 no-print">
+        <div className="bg-slate-800 rounded-xl shadow-xl p-4 mb-6 border border-slate-700 no-print">
           <div className="flex flex-wrap gap-3">
             <select
               value={filters.category}
               onChange={(e) => setFilters({...filters, category: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Categories</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
@@ -1291,7 +1291,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({...filters, priority: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Priorities</option>
               {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -1300,7 +1300,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.assignee}
               onChange={(e) => setFilters({...filters, assignee: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Team Members</option>
               {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
@@ -1309,7 +1309,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.status}
               onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Statuses</option>
               {statuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -1318,7 +1318,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.equipment}
               onChange={(e) => setFilters({...filters, equipment: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Equipment</option>
               {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
@@ -1327,7 +1327,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.dueDate}
               onChange={(e) => setFilters({...filters, dueDate: e.target.value})}
-              className="bg-gray-400 border border-gray-600 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Due Dates</option>
               <option value="today">Due Today</option>
@@ -1339,8 +1339,8 @@ const AirportTaskTracker = () => {
               onClick={toggleSortMode}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sortBy === 'date'
-                  ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg'
-                  : 'bg-gray-400 text-gray-300 hover:bg-gray-500 border border-gray-600'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 border border-slate-600'
               }`}
               title={sortBy === 'date' ? 'Click to enable custom order (drag & drop)' : 'Click to sort by due date'}
             >
@@ -1353,8 +1353,8 @@ const AirportTaskTracker = () => {
         {/* Tasks List */}
         <div className="space-y-4">
           {filteredTasks.length === 0 ? (
-            <div className="bg-gray-700 rounded-xl p-12 text-center border border-gray-600 shadow">
-              <p className="text-gray-400 text-lg">No tasks found</p>
+            <div className="bg-slate-800 rounded-xl p-12 text-center border border-slate-700">
+              <p className="text-slate-400 text-lg">No tasks found</p>
             </div>
           ) : (
             filteredTasks.map(task => {
@@ -1372,13 +1372,13 @@ const AirportTaskTracker = () => {
                   onDragOver={handleTaskDragOver}
                   onDrop={(e) => handleTaskDrop(e, task)}
                   onDragEnd={handleTaskDragEnd}
-                  className={`rounded-xl shadow ${isMajorTask ? 'border-2 border-amber-400 bg-gradient-to-br from-amber-50 to-white' : 'bg-gray-700 border border-gray-600'} hover:border-cyan-300 hover:shadow-md transition-all task-card ${draggedTask?.id === task.id ? 'opacity-50' : ''}`}
+                  className={`rounded-xl ${isMajorTask ? 'border-4 border-amber-500 bg-gradient-to-br from-slate-800 to-slate-700' : 'bg-slate-800 border border-slate-700'} hover:border-slate-600 transition-all task-card ${draggedTask?.id === task.id ? 'opacity-50' : ''}`}
                 >
                   <div className="p-5">
                     <div className="flex items-start gap-4">
                       {/* Drag Handle */}
                       {sortBy === 'custom' && (
-                        <div className="cursor-move text-gray-400 hover:text-gray-300 transition-colors no-print pt-1">
+                        <div className="cursor-move text-slate-500 hover:text-slate-300 transition-colors no-print pt-1">
                           <GripVertical size={20} />
                         </div>
                       )}
@@ -1417,7 +1417,7 @@ const AirportTaskTracker = () => {
                             </span>
                           )}
                           {task.due_date && (
-                            <span className="badge bg-gray-4000 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
+                            <span className="badge bg-slate-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
                               <Calendar size={12} />
                               {new Date(task.due_date).toLocaleDateString()}
                             </span>
@@ -1426,19 +1426,19 @@ const AirportTaskTracker = () => {
 
                         {/* Notes */}
                         {task.notes && (
-                          <p className="text-gray-400 text-sm mb-3">{task.notes}</p>
+                          <p className="text-slate-400 text-sm mb-3">{task.notes}</p>
                         )}
 
                       {/* Major Task Progress */}
                       {isMajorTask && hasSubtasks && (
-                        <div className="mb-3 bg-amber-50 rounded-lg p-3 border border-amber-300">
+                        <div className="mb-3 bg-slate-900 rounded-lg p-3 border border-amber-600">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-amber-700 font-semibold text-sm">Subtask Progress</span>
-                            <span className="text-amber-700 text-sm">{completedSubtasks} / {task.subtasks!.length}</span>
+                            <span className="text-amber-200 font-semibold text-sm">Subtask Progress</span>
+                            <span className="text-amber-200 text-sm">{completedSubtasks} / {task.subtasks!.length}</span>
                           </div>
-                          <div className="w-full bg-amber-100 rounded-full h-2">
+                          <div className="w-full bg-slate-700 rounded-full h-2">
                             <div
-                              className="bg-gradient-to-r from-amber-400 to-orange-400 h-2 rounded-full transition-all"
+                              className="bg-gradient-to-r from-amber-500 to-orange-500 h-2 rounded-full transition-all"
                               style={{ width: `${(completedSubtasks / task.subtasks!.length) * 100}%` }}
                             ></div>
                           </div>
@@ -1453,8 +1453,8 @@ const AirportTaskTracker = () => {
                             onClick={() => updateTaskStatus(task.id, status.id)}
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
                               task.status === status.id
-                                ? 'bg-cyan-500 text-white shadow-lg'
-                                : 'bg-gray-400 text-gray-300 hover:bg-gray-500 border border-gray-600'
+                                ? 'bg-cyan-600 text-white shadow-lg'
+                                : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                             }`}
                           >
                             {status.label}
@@ -1469,7 +1469,7 @@ const AirportTaskTracker = () => {
 
                       {/* Remarks count */}
                       {task.remarks && task.remarks.length > 0 && (
-                        <div className="mt-2 text-gray-400 text-sm">
+                        <div className="mt-2 text-slate-400 text-sm">
                           💬 {task.remarks.length} remark{task.remarks.length !== 1 ? 's' : ''}
                         </div>
                       )}
@@ -1480,7 +1480,7 @@ const AirportTaskTracker = () => {
                       {isMajorTask && (
                         <button
                           onClick={() => openAddTask(task.id)}
-                          className="text-emerald-600 hover:text-emerald-700 p-2 hover:bg-emerald-50 rounded-lg transition-all flex items-center gap-1"
+                          className="text-green-400 hover:text-green-300 p-2 hover:bg-slate-700 rounded-lg transition-all flex items-center gap-1"
                           title="Add Subtask"
                         >
                           <Plus size={20} />
@@ -1489,21 +1489,21 @@ const AirportTaskTracker = () => {
                       )}
                       <button
                         onClick={() => openRemarksModal(task)}
-                        className="text-cyan-600 hover:text-cyan-700 p-2 hover:bg-cyan-50 rounded-lg transition-all"
+                        className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-700 rounded-lg transition-all"
                         title="View/Add Remarks"
                       >
                         <MessageSquare size={20} />
                       </button>
                       <button
                         onClick={() => openEditTask(task)}
-                        className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-all"
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-700 rounded-lg transition-all"
                         title="Edit Task"
                       >
                         <Edit2 size={20} />
                       </button>
                       <button
                         onClick={() => deleteTask(task.id)}
-                        className="text-red-500 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                        className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-700 rounded-lg transition-all"
                         title="Delete Task"
                       >
                         <Trash2 size={20} />
@@ -1527,12 +1527,12 @@ const AirportTaskTracker = () => {
                           onDragOver={handleSubtaskDragOver}
                           onDrop={(e) => handleSubtaskDrop(e, subtask, task)}
                           onDragEnd={handleSubtaskDragEnd}
-                          className={`bg-gray-400 rounded-lg p-4 border-l-4 border-cyan-400 shadow-sm ${draggedSubtask?.id === subtask.id ? 'opacity-50' : ''}`}
+                          className={`bg-slate-700 rounded-lg p-4 border-l-4 border-cyan-500 ${draggedSubtask?.id === subtask.id ? 'opacity-50' : ''}`}
                         >
                           <div className="flex items-start gap-4">
                             {/* Drag Handle for Subtasks */}
                             {sortBy === 'custom' && (
-                              <div className="cursor-move text-gray-400 hover:text-gray-300 transition-colors no-print pt-1">
+                              <div className="cursor-move text-slate-500 hover:text-slate-300 transition-colors no-print pt-1">
                                 <GripVertical size={16} />
                               </div>
                             )}
@@ -1543,7 +1543,7 @@ const AirportTaskTracker = () => {
 
                               {/* Badges */}
                               <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <span className="badge bg-cyan-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                                <span className="badge bg-cyan-700 text-white px-2 py-1 rounded text-xs font-semibold">
                                   📎 SUBTASK
                                 </span>
                                 <span className={`badge ${subCategoryInfo?.color} text-white px-2 py-1 rounded text-xs font-semibold`}>
@@ -1561,7 +1561,7 @@ const AirportTaskTracker = () => {
 
                               {/* Notes */}
                               {subtask.notes && (
-                                <p className="text-gray-400 text-sm mb-2">{subtask.notes}</p>
+                                <p className="text-slate-300 text-sm mb-2">{subtask.notes}</p>
                               )}
 
                               {/* Subtask Status Buttons */}
@@ -1572,8 +1572,8 @@ const AirportTaskTracker = () => {
                                     onClick={() => updateTaskStatus(subtask.id, status.id)}
                                     className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                                       subtask.status === status.id
-                                        ? 'bg-cyan-500 text-white shadow'
-                                        : 'bg-gray-700 text-gray-300 hover:bg-gray-500 border border-gray-600'
+                                        ? 'bg-cyan-600 text-white shadow-lg'
+                                        : 'bg-slate-600 text-slate-200 hover:bg-slate-500'
                                     }`}
                                   >
                                     {status.label}
@@ -1591,21 +1591,21 @@ const AirportTaskTracker = () => {
                             <div className="flex gap-2 no-print">
                               <button
                                 onClick={() => openRemarksModal(subtask)}
-                                className="text-cyan-600 hover:text-cyan-700 p-2 hover:bg-cyan-50 rounded-lg transition-all"
+                                className="text-cyan-400 hover:text-cyan-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
                                 title="View/Add Remarks"
                               >
                                 <MessageSquare size={16} />
                               </button>
                               <button
                                 onClick={() => openEditTask(subtask)}
-                                className="text-blue-600 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-lg transition-all"
+                                className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
                                 title="Edit Subtask"
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button
                                 onClick={() => deleteTask(subtask.id)}
-                                className="text-red-500 hover:text-red-600 p-2 hover:bg-red-50 rounded-lg transition-all"
+                                className="text-red-400 hover:text-red-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
                                 title="Delete Subtask"
                               >
                                 <Trash2 size={16} />
@@ -1629,14 +1629,14 @@ const AirportTaskTracker = () => {
         {activeTab === 'equipment' && !selectedEquipment && (
           <div className="space-y-4">
             {/* Filter Tabs */}
-            <div className="bg-gray-700 rounded-xl p-4 border border-gray-600 shadow">
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
               <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={() => setEquipmentViewFilter('all')}
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     equipmentViewFilter === 'all'
-                      ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-400 text-gray-300 hover:bg-gray-500'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                   }`}
                 >
                   All ({equipmentList.length})
@@ -1645,8 +1645,8 @@ const AirportTaskTracker = () => {
                   onClick={() => setEquipmentViewFilter('equipment')}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     equipmentViewFilter === 'equipment'
-                      ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-400 text-gray-300 hover:bg-gray-500'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                   }`}
                 >
                   <Truck size={16} />
@@ -1656,8 +1656,8 @@ const AirportTaskTracker = () => {
                   onClick={() => setEquipmentViewFilter('facilities')}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     equipmentViewFilter === 'facilities'
-                      ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-400 text-gray-300 hover:bg-gray-500'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                   }`}
                 >
                   <Building2 size={16} />
@@ -1688,16 +1688,16 @@ const AirportTaskTracker = () => {
                   <div
                     key={equip.id}
                     onClick={() => setSelectedEquipment(equip)}
-                    className={`bg-gray-700 rounded-xl p-5 border shadow-sm ${isFacility ? 'border-teal-200 hover:border-teal-400' : 'border-gray-600 hover:border-cyan-400'} cursor-pointer transition-all hover:shadow-md`}
+                    className={`bg-slate-800 rounded-xl p-5 border ${isFacility ? 'border-purple-700 hover:border-purple-500' : 'border-slate-700 hover:border-cyan-500'} cursor-pointer transition-all hover:shadow-lg`}
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <div className={isFacility ? 'text-teal-500' : 'text-cyan-500'}>
+                        <div className={isFacility ? 'text-purple-400' : 'text-cyan-400'}>
                           {getEquipmentIcon(equip.equipment_type)}
                         </div>
                         <div>
                           <h3 className="text-white font-semibold">{equip.name}</h3>
-                          <p className="text-gray-400 text-sm">{getEquipmentTypeLabel(equip.equipment_type)}</p>
+                          <p className="text-slate-400 text-sm">{getEquipmentTypeLabel(equip.equipment_type)}</p>
                         </div>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold text-white ${getEquipmentStatusColor(equip.status)}`}>
@@ -1708,21 +1708,21 @@ const AirportTaskTracker = () => {
                     {/* Ownership for facilities */}
                     {isFacility && equip.ownership && (
                       <div className="mb-2 text-sm">
-                        <span className="text-gray-400">Owner: </span>
-                        <span className="text-gray-700">{getOwnershipLabel(equip.ownership)}</span>
+                        <span className="text-slate-500">Owner: </span>
+                        <span className="text-slate-300">{getOwnershipLabel(equip.ownership)}</span>
                       </div>
                     )}
 
                     {/* Quick Stats */}
                     <div className="flex gap-4 text-sm">
                       {upcomingServices.length > 0 && (
-                        <span className="text-cyan-600 flex items-center gap-1">
+                        <span className="text-blue-400 flex items-center gap-1">
                           <Clock size={14} />
                           {upcomingServices.length} service{upcomingServices.length !== 1 ? 's' : ''}
                         </span>
                       )}
                       {currentFaults.length > 0 && (
-                        <span className="text-red-500 flex items-center gap-1">
+                        <span className="text-red-400 flex items-center gap-1">
                           <AlertTriangle size={14} />
                           {currentFaults.length} fault{currentFaults.length !== 1 ? 's' : ''}
                         </span>
@@ -1731,7 +1731,7 @@ const AirportTaskTracker = () => {
 
                     {/* Alert Badge */}
                     {hasAlerts && (
-                      <div className="mt-3 flex items-center gap-2 text-amber-600 text-sm">
+                      <div className="mt-3 flex items-center gap-2 text-amber-400 text-sm">
                         <AlertTriangle size={14} />
                         <span>Expiration alert</span>
                       </div>
@@ -1746,29 +1746,29 @@ const AirportTaskTracker = () => {
                 if (equipmentViewFilter === 'facilities') return isFacilityType(equip.equipment_type);
                 return true;
               }).length === 0 && (
-                <div className="col-span-full bg-gray-700 rounded-xl p-12 text-center border border-gray-600 shadow">
+                <div className="col-span-full bg-slate-800 rounded-xl p-12 text-center border border-slate-700">
                   {equipmentViewFilter === 'facilities' ? (
                     <>
-                      <Building2 size={48} className="mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-300 text-lg mb-2">No facilities added yet</p>
-                      <p className="text-gray-400 text-sm mb-4">Add facilities like hangar doors, fuel farms, or HVAC systems</p>
+                      <Building2 size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No facilities added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add facilities like hangar doors, fuel farms, or HVAC systems</p>
                     </>
                   ) : equipmentViewFilter === 'equipment' ? (
                     <>
-                      <Truck size={48} className="mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-300 text-lg mb-2">No equipment added yet</p>
-                      <p className="text-gray-400 text-sm mb-4">Add vehicles, trucks, or other equipment</p>
+                      <Truck size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No equipment added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add vehicles, trucks, or other equipment</p>
                     </>
                   ) : (
                     <>
-                      <Truck size={48} className="mx-auto text-gray-400 mb-4" />
-                      <p className="text-gray-300 text-lg mb-2">No equipment or facilities added yet</p>
-                      <p className="text-gray-400 text-sm mb-4">Add equipment via Settings to start tracking</p>
+                      <Truck size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No equipment or facilities added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add equipment via Settings to start tracking</p>
                     </>
                   )}
                   <button
                     onClick={() => setShowSettingsModal(true)}
-                    className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2 rounded-lg hover:from-cyan-400 hover:to-cyan-500 transition-colors shadow"
+                    className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-cyan-500 hover:to-blue-500 transition-colors"
                   >
                     Open Settings
                   </button>
@@ -1782,10 +1782,10 @@ const AirportTaskTracker = () => {
         {activeTab === 'equipment' && selectedEquipment && (
           <div className="space-y-6">
             {/* Back Button and Header */}
-            <div className={`bg-gray-700 rounded-xl p-6 border shadow ${isFacilityType(selectedEquipment.equipment_type) ? 'border-teal-200' : 'border-gray-600'}`}>
+            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
               <button
                 onClick={() => setSelectedEquipment(null)}
-                className="flex items-center gap-2 text-gray-400 hover:text-gray-700 mb-4 transition-colors"
+                className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors"
               >
                 <ChevronLeft size={20} />
                 Back to {isFacilityType(selectedEquipment.equipment_type) ? 'Facilities' : 'Equipment'} List
@@ -1793,12 +1793,12 @@ const AirportTaskTracker = () => {
 
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={isFacilityType(selectedEquipment.equipment_type) ? 'text-teal-500' : 'text-cyan-500'}>
+                  <div className={isFacilityType(selectedEquipment.equipment_type) ? 'text-purple-400' : 'text-cyan-400'}>
                     {getEquipmentIcon(selectedEquipment.equipment_type)}
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-white">{selectedEquipment.name}</h2>
-                    <p className="text-gray-400">{getEquipmentTypeLabel(selectedEquipment.equipment_type)}</p>
+                    <p className="text-slate-400">{getEquipmentTypeLabel(selectedEquipment.equipment_type)}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${getEquipmentStatusColor(selectedEquipment.status)}`}>
                     {getEquipmentStatusLabel(selectedEquipment.status)}
@@ -1806,7 +1806,7 @@ const AirportTaskTracker = () => {
                 </div>
                 <button
                   onClick={() => openEditEquipment(selectedEquipment)}
-                  className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors border border-gray-600"
+                  className="flex items-center gap-2 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors"
                 >
                   <Edit2 size={18} />
                   Edit
@@ -1820,25 +1820,25 @@ const AirportTaskTracker = () => {
                 isDateExpired(selectedEquipment.insurance_expiration)) && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {isDateExpired(selectedEquipment.registration_renewal_date) && (
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
                       <AlertTriangle size={14} />
                       Registration Expired
                     </span>
                   )}
                   {!isDateExpired(selectedEquipment.registration_renewal_date) && isDateExpiringSoon(selectedEquipment.registration_renewal_date) && (
-                    <span className="bg-amber-500 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                    <span className="bg-amber-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
                       <AlertTriangle size={14} />
                       Registration Expiring Soon
                     </span>
                   )}
                   {isDateExpired(selectedEquipment.insurance_expiration) && (
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
                       <AlertTriangle size={14} />
                       Insurance Expired
                     </span>
                   )}
                   {!isDateExpired(selectedEquipment.insurance_expiration) && isDateExpiringSoon(selectedEquipment.insurance_expiration) && (
-                    <span className="bg-amber-500 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                    <span className="bg-amber-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
                       <AlertTriangle size={14} />
                       Insurance Expiring Soon
                     </span>
@@ -1848,7 +1848,7 @@ const AirportTaskTracker = () => {
             </div>
 
             {/* Admin Data Section */}
-            <div className={`bg-gray-700 rounded-xl p-6 border shadow ${isFacilityType(selectedEquipment.equipment_type) ? 'border-teal-200' : 'border-gray-600'}`}>
+            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
               <h3 className="text-lg font-semibold text-white mb-4">
                 {isFacilityType(selectedEquipment.equipment_type) ? 'Facility Details' : 'Equipment Details'}
               </h3>
@@ -1858,29 +1858,29 @@ const AirportTaskTracker = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     <div>
-                      <p className="text-gray-400 text-sm">Type</p>
+                      <p className="text-slate-400 text-sm">Type</p>
                       <p className="text-white">{getEquipmentTypeLabel(selectedEquipment.equipment_type)}</p>
                     </div>
                     {selectedEquipment.ownership && (
                       <div>
-                        <p className="text-gray-400 text-sm">Ownership</p>
+                        <p className="text-slate-400 text-sm">Ownership</p>
                         <p className="text-white">{getOwnershipLabel(selectedEquipment.ownership)}</p>
                       </div>
                     )}
                     <div>
-                      <p className="text-gray-400 text-sm">Condition</p>
+                      <p className="text-slate-400 text-sm">Condition</p>
                       <p className="text-white">{getEquipmentStatusLabel(selectedEquipment.status)}</p>
                     </div>
                     {selectedEquipment.acquisition_date && (
                       <div>
-                        <p className="text-gray-400 text-sm">Acquisition Date</p>
+                        <p className="text-slate-400 text-sm">Acquisition Date</p>
                         <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
                       </div>
                     )}
                   </div>
                   {selectedEquipment.description && (
                     <div>
-                      <p className="text-gray-400 text-sm">Description</p>
+                      <p className="text-slate-400 text-sm">Description</p>
                       <p className="text-white">{selectedEquipment.description}</p>
                     </div>
                   )}
@@ -1892,55 +1892,55 @@ const AirportTaskTracker = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {selectedEquipment.year && (
                     <div>
-                      <p className="text-gray-400 text-sm">Year</p>
+                      <p className="text-slate-400 text-sm">Year</p>
                       <p className="text-white">{selectedEquipment.year}</p>
                     </div>
                   )}
                   {selectedEquipment.make && (
                     <div>
-                      <p className="text-gray-400 text-sm">Make</p>
+                      <p className="text-slate-400 text-sm">Make</p>
                       <p className="text-white">{selectedEquipment.make}</p>
                     </div>
                   )}
                   {selectedEquipment.model && (
                     <div>
-                      <p className="text-gray-400 text-sm">Model</p>
+                      <p className="text-slate-400 text-sm">Model</p>
                       <p className="text-white">{selectedEquipment.model}</p>
                     </div>
                   )}
                   {selectedEquipment.vin && (
                     <div>
-                      <p className="text-gray-400 text-sm">VIN</p>
+                      <p className="text-slate-400 text-sm">VIN</p>
                       <p className="text-white font-mono text-sm">{selectedEquipment.vin}</p>
                     </div>
                   )}
                   {selectedEquipment.license_plate && (
                     <div>
-                      <p className="text-gray-400 text-sm">License Plate</p>
+                      <p className="text-slate-400 text-sm">License Plate</p>
                       <p className="text-white">{selectedEquipment.license_plate}</p>
                     </div>
                   )}
                   {selectedEquipment.mileage_hours && (
                     <div>
-                      <p className="text-gray-400 text-sm">Mileage/Hours</p>
+                      <p className="text-slate-400 text-sm">Mileage/Hours</p>
                       <p className="text-white">{selectedEquipment.mileage_hours.toLocaleString()}</p>
                     </div>
                   )}
                   {selectedEquipment.acquisition_date && (
                     <div>
-                      <p className="text-gray-400 text-sm">Acquisition Date</p>
+                      <p className="text-slate-400 text-sm">Acquisition Date</p>
                       <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
                     </div>
                   )}
                   {selectedEquipment.registration_date && (
                     <div>
-                      <p className="text-gray-400 text-sm">Registration Date</p>
+                      <p className="text-slate-400 text-sm">Registration Date</p>
                       <p className="text-white">{new Date(selectedEquipment.registration_date).toLocaleDateString()}</p>
                     </div>
                   )}
                   {selectedEquipment.registration_renewal_date && (
                     <div>
-                      <p className="text-gray-400 text-sm">Registration Renewal</p>
+                      <p className="text-slate-400 text-sm">Registration Renewal</p>
                       <p className={`${isDateExpired(selectedEquipment.registration_renewal_date) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.registration_renewal_date) ? 'text-amber-400' : 'text-white'}`}>
                         {new Date(selectedEquipment.registration_renewal_date).toLocaleDateString()}
                       </p>
@@ -1948,7 +1948,7 @@ const AirportTaskTracker = () => {
                   )}
                   {selectedEquipment.insurance_expiration && (
                     <div>
-                      <p className="text-gray-400 text-sm">Insurance Expiration</p>
+                      <p className="text-slate-400 text-sm">Insurance Expiration</p>
                       <p className={`${isDateExpired(selectedEquipment.insurance_expiration) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.insurance_expiration) ? 'text-amber-400' : 'text-white'}`}>
                         {new Date(selectedEquipment.insurance_expiration).toLocaleDateString()}
                       </p>
@@ -1959,13 +1959,13 @@ const AirportTaskTracker = () => {
 
               {selectedEquipment.notes && (
                 <div className="mt-4">
-                  <p className="text-gray-400 text-sm">Notes</p>
+                  <p className="text-slate-400 text-sm">Notes</p>
                   <p className="text-white">{selectedEquipment.notes}</p>
                 </div>
               )}
 
               {/* Replacement Parts Button */}
-              <div className="mt-6 pt-4 border-t border-gray-600 flex justify-center">
+              <div className="mt-6 pt-4 border-t border-slate-700 flex justify-center">
                 <button
                   onClick={() => {
                     loadEquipmentParts(selectedEquipment.id);
@@ -1980,7 +1980,7 @@ const AirportTaskTracker = () => {
             </div>
 
             {/* Upcoming Services */}
-            <div className="bg-gray-700 rounded-xl p-6 border border-gray-600">
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Clock size={20} className="text-blue-400" />
                 Upcoming Services and Inspections ({getUpcomingServices(selectedEquipment.name).length})
@@ -1988,22 +1988,22 @@ const AirportTaskTracker = () => {
               {getUpcomingServices(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getUpcomingServices(selectedEquipment.name).map(task => (
-                    <div key={task.id} className="bg-gray-400 rounded-lg p-4 flex justify-between items-center">
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4 flex justify-between items-center">
                       <div>
                         <p className="text-white font-medium">{task.title}</p>
                         <div className="flex gap-2 mt-1">
                           {task.due_date && (
-                            <span className="text-gray-400 text-sm flex items-center gap-1">
+                            <span className="text-slate-400 text-sm flex items-center gap-1">
                               <Calendar size={12} />
                               {new Date(task.due_date).toLocaleDateString()}
                             </span>
                           )}
-                          <span className="text-gray-400 text-sm">{getStatusLabel(task.status)}</span>
+                          <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => openEditTask(task)}
-                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-500 rounded-lg transition-all"
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -2011,12 +2011,12 @@ const AirportTaskTracker = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-400">No upcoming services scheduled</p>
+                <p className="text-slate-400">No upcoming services scheduled</p>
               )}
             </div>
 
             {/* Current Faults */}
-            <div className="bg-gray-700 rounded-xl p-6 border border-gray-600">
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <AlertTriangle size={20} className="text-red-400" />
                 Current Faults ({getCurrentFaults(selectedEquipment.name).length})
@@ -2024,22 +2024,22 @@ const AirportTaskTracker = () => {
               {getCurrentFaults(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getCurrentFaults(selectedEquipment.name).map(task => (
-                    <div key={task.id} className="bg-gray-400 rounded-lg p-4 flex justify-between items-center border-l-4 border-red-500">
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4 flex justify-between items-center border-l-4 border-red-500">
                       <div>
                         <p className="text-white font-medium">{task.title}</p>
                         <div className="flex gap-2 mt-1">
                           {task.due_date && (
-                            <span className="text-gray-400 text-sm flex items-center gap-1">
+                            <span className="text-slate-400 text-sm flex items-center gap-1">
                               <Calendar size={12} />
                               {new Date(task.due_date).toLocaleDateString()}
                             </span>
                           )}
-                          <span className="text-gray-400 text-sm">{getStatusLabel(task.status)}</span>
+                          <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => openEditTask(task)}
-                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-500 rounded-lg transition-all"
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -2047,12 +2047,12 @@ const AirportTaskTracker = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-400">No current faults reported</p>
+                <p className="text-slate-400">No current faults reported</p>
               )}
             </div>
 
             {/* Service History */}
-            <div className="bg-gray-700 rounded-xl p-6 border border-gray-600">
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <History size={20} className="text-green-400" />
                 Service and Inspection History ({getServiceHistory(selectedEquipment.name).length})
@@ -2060,11 +2060,11 @@ const AirportTaskTracker = () => {
               {getServiceHistory(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getServiceHistory(selectedEquipment.name).slice(0, 10).map(task => (
-                    <div key={task.id} className="bg-gray-400 rounded-lg p-4">
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-white font-medium">{task.title}</p>
-                          <p className="text-gray-400 text-sm mt-1">
+                          <p className="text-slate-400 text-sm mt-1">
                             Completed: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
                           </p>
                         </div>
@@ -2073,18 +2073,18 @@ const AirportTaskTracker = () => {
                     </div>
                   ))}
                   {getServiceHistory(selectedEquipment.name).length > 10 && (
-                    <p className="text-gray-400 text-sm text-center">
+                    <p className="text-slate-400 text-sm text-center">
                       + {getServiceHistory(selectedEquipment.name).length - 10} more entries
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-gray-400">No service history</p>
+                <p className="text-slate-400">No service history</p>
               )}
             </div>
 
             {/* Fault History */}
-            <div className="bg-gray-700 rounded-xl p-6 border border-gray-600">
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <History size={20} className="text-amber-400" />
                 Fault History ({getFaultHistory(selectedEquipment.name).length})
@@ -2092,11 +2092,11 @@ const AirportTaskTracker = () => {
               {getFaultHistory(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getFaultHistory(selectedEquipment.name).slice(0, 10).map(task => (
-                    <div key={task.id} className="bg-gray-400 rounded-lg p-4">
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-white font-medium">{task.title}</p>
-                          <p className="text-gray-400 text-sm mt-1">
+                          <p className="text-slate-400 text-sm mt-1">
                             Resolved: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
                           </p>
                         </div>
@@ -2105,13 +2105,13 @@ const AirportTaskTracker = () => {
                     </div>
                   ))}
                   {getFaultHistory(selectedEquipment.name).length > 10 && (
-                    <p className="text-gray-400 text-sm text-center">
+                    <p className="text-slate-400 text-sm text-center">
                       + {getFaultHistory(selectedEquipment.name).length - 10} more entries
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-gray-400">No fault history</p>
+                <p className="text-slate-400">No fault history</p>
               )}
             </div>
           </div>
@@ -2121,8 +2121,8 @@ const AirportTaskTracker = () => {
       {/* Equipment Edit Modal */}
       {showEquipmentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className={`bg-gray-700 rounded-xl shadow-2xl max-w-2xl w-full border ${isFacilityType(equipmentForm.equipment_type) ? 'border-teal-200' : 'border-gray-600'} flex flex-col`} style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className={`bg-gray-700 border-b ${isFacilityType(equipmentForm.equipment_type) ? 'border-teal-200' : 'border-gray-600'} p-6 flex justify-between items-center flex-shrink-0`}>
+          <div className={`bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} flex flex-col`} style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className={`bg-slate-800 border-b ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-6 flex justify-between items-center flex-shrink-0`}>
               <h2 className="text-2xl font-bold text-white">
                 {editingEquipment
                   ? (isFacilityType(equipmentForm.equipment_type) ? 'Edit Facility' : 'Edit Equipment')
@@ -2131,7 +2131,7 @@ const AirportTaskTracker = () => {
               </h2>
               <button
                 onClick={() => setShowEquipmentModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
                 <X size={24} />
               </button>
@@ -2147,7 +2147,7 @@ const AirportTaskTracker = () => {
                   value={equipmentForm.name}
                   onChange={(e) => setEquipmentForm({...equipmentForm, name: e.target.value})}
                   placeholder={isFacilityType(equipmentForm.equipment_type) ? 'Enter facility name...' : 'Enter equipment name...'}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2157,7 +2157,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={equipmentForm.equipment_type}
                     onChange={(e) => setEquipmentForm({...equipmentForm, equipment_type: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     <optgroup label="Equipment">
                       {vehicleEquipmentTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
@@ -2175,7 +2175,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={equipmentForm.status}
                     onChange={(e) => setEquipmentForm({...equipmentForm, status: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {equipmentStatuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
@@ -2190,7 +2190,7 @@ const AirportTaskTracker = () => {
                     <select
                       value={equipmentForm.ownership}
                       onChange={(e) => setEquipmentForm({...equipmentForm, ownership: e.target.value})}
-                      className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       {ownershipOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
                     </select>
@@ -2203,7 +2203,7 @@ const AirportTaskTracker = () => {
                       onChange={(e) => setEquipmentForm({...equipmentForm, description: e.target.value})}
                       placeholder="Describe the facility, its purpose, and key details..."
                       rows={3}
-                      className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
 
@@ -2213,7 +2213,7 @@ const AirportTaskTracker = () => {
                       type="date"
                       value={equipmentForm.acquisition_date}
                       onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
-                      className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                 </>
@@ -2230,7 +2230,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.year}
                         onChange={(e) => setEquipmentForm({...equipmentForm, year: e.target.value})}
                         placeholder="e.g., 2020"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2241,7 +2241,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.make}
                         onChange={(e) => setEquipmentForm({...equipmentForm, make: e.target.value})}
                         placeholder="e.g., Ford"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2252,7 +2252,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.model}
                         onChange={(e) => setEquipmentForm({...equipmentForm, model: e.target.value})}
                         placeholder="e.g., F-550"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2265,7 +2265,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.vin}
                         onChange={(e) => setEquipmentForm({...equipmentForm, vin: e.target.value})}
                         placeholder="Vehicle Identification Number"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2276,7 +2276,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.license_plate}
                         onChange={(e) => setEquipmentForm({...equipmentForm, license_plate: e.target.value})}
                         placeholder="e.g., ABC-1234"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2288,7 +2288,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.acquisition_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2299,7 +2299,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.mileage_hours}
                         onChange={(e) => setEquipmentForm({...equipmentForm, mileage_hours: e.target.value})}
                         placeholder="Current mileage or hours"
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2311,7 +2311,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.registration_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, registration_date: e.target.value})}
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2321,7 +2321,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.registration_renewal_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, registration_renewal_date: e.target.value})}
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2331,7 +2331,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.insurance_expiration}
                         onChange={(e) => setEquipmentForm({...equipmentForm, insurance_expiration: e.target.value})}
-                        className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2345,15 +2345,15 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setEquipmentForm({...equipmentForm, notes: e.target.value})}
                   placeholder="Additional notes..."
                   rows={3}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
 
-            <div className={`sticky bottom-0 bg-gray-700 border-t ${isFacilityType(equipmentForm.equipment_type) ? 'border-teal-200' : 'border-gray-600'} p-4 flex justify-end gap-3 flex-shrink-0`}>
+            <div className={`sticky bottom-0 bg-slate-800 border-t ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-4 flex justify-end gap-3 flex-shrink-0`}>
               <button
                 onClick={() => setShowEquipmentModal(false)}
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors"
+                className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
               >
                 Cancel
               </button>
@@ -2375,14 +2375,14 @@ const AirportTaskTracker = () => {
       {/* Add/Edit Task Modal */}
       {showTaskModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-700 rounded-xl shadow-2xl max-w-2xl w-full border border-gray-600 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className="bg-gray-700 border-b border-gray-600 p-6 flex justify-between items-center flex-shrink-0">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border border-slate-700 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center flex-shrink-0">
               <h2 className="text-2xl font-bold text-white">
                 {editingTask ? 'Edit Task' : 'Add New Task'}
               </h2>
               <button
                 onClick={() => setShowTaskModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
                 <X size={24} />
               </button>
@@ -2396,7 +2396,7 @@ const AirportTaskTracker = () => {
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({...taskForm, title: e.target.value})}
                   placeholder="Enter task title..."
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2406,7 +2406,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.category}
                     onChange={(e) => setTaskForm({...taskForm, category: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
@@ -2417,7 +2417,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.priority}
                     onChange={(e) => setTaskForm({...taskForm, priority: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                   </select>
@@ -2430,7 +2430,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.assignee}
                     onChange={(e) => setTaskForm({...taskForm, assignee: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     <option value="">Unassigned</option>
                     {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
@@ -2442,7 +2442,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.status}
                     onChange={(e) => setTaskForm({...taskForm, status: e.target.value})}
-                    className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {statuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
@@ -2454,7 +2454,7 @@ const AirportTaskTracker = () => {
                 <select
                   value={taskForm.equipment}
                   onChange={(e) => setTaskForm({...taskForm, equipment: e.target.value})}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="">None</option>
                   {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
@@ -2467,7 +2467,7 @@ const AirportTaskTracker = () => {
                   type="date"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({...taskForm, dueDate: e.target.value})}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2486,7 +2486,7 @@ const AirportTaskTracker = () => {
                     <select
                       value={taskForm.recurringInterval}
                       onChange={(e) => setTaskForm({...taskForm, recurringInterval: e.target.value})}
-                      className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -2498,17 +2498,17 @@ const AirportTaskTracker = () => {
                     {/* Day of week selector for weekly */}
                     {taskForm.recurringInterval === 'weekly' && (
                       <div>
-                        <label className="block text-gray-300 text-sm mb-1">Repeat on</label>
+                        <label className="block text-slate-300 text-sm mb-1">Repeat on</label>
                         <select
                           value={taskForm.recurringDayOfWeek ?? 1}
                           onChange={(e) => setTaskForm({...taskForm, recurringDayOfWeek: parseInt(e.target.value)})}
-                          className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         >
                           {daysOfWeek.map(day => (
                             <option key={day.id} value={day.id}>{day.label}</option>
                           ))}
                         </select>
-                        <p className="text-gray-400 text-xs mt-1">
+                        <p className="text-slate-400 text-xs mt-1">
                           Weekly on {getDayOfWeekLabel(taskForm.recurringDayOfWeek)}s
                         </p>
                       </div>
@@ -2517,17 +2517,17 @@ const AirportTaskTracker = () => {
                     {/* Day of month selector for monthly */}
                     {taskForm.recurringInterval === 'monthly' && (
                       <div>
-                        <label className="block text-gray-300 text-sm mb-1">Repeat on day</label>
+                        <label className="block text-slate-300 text-sm mb-1">Repeat on day</label>
                         <select
                           value={taskForm.recurringDayOfMonth ?? 1}
                           onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                          className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         >
                           {daysOfMonth.map(day => (
                             <option key={day.id} value={day.id}>{day.label}</option>
                           ))}
                         </select>
-                        <p className="text-gray-400 text-xs mt-1">
+                        <p className="text-slate-400 text-xs mt-1">
                           Monthly on the {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}
                         </p>
                       </div>
@@ -2537,11 +2537,11 @@ const AirportTaskTracker = () => {
                     {taskForm.recurringInterval === 'quarterly' && (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-gray-300 text-sm mb-1">Month of quarter</label>
+                          <label className="block text-slate-300 text-sm mb-1">Month of quarter</label>
                           <select
                             value={taskForm.recurringMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {quarterMonths.map(qm => (
                               <option key={qm.id} value={qm.id}>{qm.label}</option>
@@ -2549,18 +2549,18 @@ const AirportTaskTracker = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-gray-300 text-sm mb-1">Day of month</label>
+                          <label className="block text-slate-300 text-sm mb-1">Day of month</label>
                           <select
                             value={taskForm.recurringDayOfMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {daysOfMonth.map(day => (
                               <option key={day.id} value={day.id}>{day.label}</option>
                             ))}
                           </select>
                         </div>
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-slate-400 text-xs">
                           Quarterly on the {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)} of the {quarterMonths.find(q => q.id === taskForm.recurringMonth)?.label.split(' ')[0].toLowerCase()} month
                         </p>
                       </div>
@@ -2570,11 +2570,11 @@ const AirportTaskTracker = () => {
                     {taskForm.recurringInterval === 'annually' && (
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-gray-300 text-sm mb-1">Month</label>
+                          <label className="block text-slate-300 text-sm mb-1">Month</label>
                           <select
                             value={taskForm.recurringMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {monthsOfYear.map(month => (
                               <option key={month.id} value={month.id}>{month.label}</option>
@@ -2582,18 +2582,18 @@ const AirportTaskTracker = () => {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-gray-300 text-sm mb-1">Day</label>
+                          <label className="block text-slate-300 text-sm mb-1">Day</label>
                           <select
                             value={taskForm.recurringDayOfMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {daysOfMonth.map(day => (
                               <option key={day.id} value={day.id}>{day.label}</option>
                             ))}
                           </select>
                         </div>
-                        <p className="text-gray-400 text-xs">
+                        <p className="text-slate-400 text-xs">
                           Annually on {monthsOfYear.find(m => m.id === taskForm.recurringMonth)?.label} {taskForm.recurringDayOfMonth}{getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}
                         </p>
                       </div>
@@ -2614,7 +2614,7 @@ const AirportTaskTracker = () => {
                     Major Task (can have subtasks)
                   </label>
                   {taskForm.isMajorTask && (
-                    <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm text-slate-400 mt-1">
                       This task will be highlighted and can have multiple subtasks. It can only be completed when all subtasks are done.
                     </p>
                   )}
@@ -2636,21 +2636,21 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setTaskForm({...taskForm, notes: e.target.value})}
                   placeholder="Add additional details..."
                   rows={3}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
 
-            <div className="sticky bottom-0 bg-gray-700 border-t border-gray-600 p-4 flex justify-end gap-3 flex-shrink-0">
+            <div className="sticky bottom-0 bg-slate-800 border-t border-slate-700 p-4 flex justify-end gap-3 flex-shrink-0">
               <button
                 onClick={() => setShowTaskModal(false)}
-                className="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors"
+                className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={saveTask}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
               >
                 {editingTask ? 'Save Changes' : 'Add Task'}
               </button>
@@ -2662,12 +2662,12 @@ const AirportTaskTracker = () => {
       {/* Remarks Modal */}
       {showRemarksModal && currentTaskForRemarks && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-700 rounded-xl shadow-2xl max-w-2xl w-full border border-gray-600 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className="bg-gray-700 border-b border-gray-600 p-6 flex justify-between items-center flex-shrink-0">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border border-slate-700 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center flex-shrink-0">
               <h2 className="text-2xl font-bold text-white">Task Remarks</h2>
               <button
                 onClick={() => setShowRemarksModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
                 <X size={24} />
               </button>
@@ -2680,15 +2680,15 @@ const AirportTaskTracker = () => {
               <div className="space-y-3 mb-6">
                 {currentTaskForRemarks.remarks && currentTaskForRemarks.remarks.length > 0 ? (
                   currentTaskForRemarks.remarks.map(remark => (
-                    <div key={remark.id} className="bg-gray-400 rounded-lg p-4 border border-gray-500">
+                    <div key={remark.id} className="bg-slate-700 rounded-lg p-4 border border-slate-600">
                       <p className="text-white mb-2">{remark.text}</p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-slate-400 text-xs">
                         {new Date(remark.timestamp).toLocaleString()}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-400 text-center py-4">No remarks yet</p>
+                  <p className="text-slate-400 text-center py-4">No remarks yet</p>
                 )}
               </div>
 
@@ -2700,7 +2700,7 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setNewRemark(e.target.value)}
                   placeholder="Enter your remark..."
                   rows={3}
-                  className="w-full bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-3"
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-3"
                 />
                 <button
                   onClick={addRemark}
@@ -2718,12 +2718,12 @@ const AirportTaskTracker = () => {
       {showSettingsModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
           <div className="absolute inset-0 bg-black bg-opacity-50" onClick={() => setShowSettingsModal(false)}></div>
-          <div className="bg-gray-700 rounded-xl shadow-2xl max-w-4xl w-full border border-gray-600 flex flex-col relative z-50" style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className="bg-gray-700 border-b border-gray-600 p-6 flex justify-between items-center flex-shrink-0">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-4xl w-full border border-slate-700 flex flex-col relative z-50" style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center flex-shrink-0">
               <h2 className="text-2xl font-bold text-white">Settings</h2>
               <button
                 onClick={() => setShowSettingsModal(false)}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-colors"
               >
                 <X size={24} />
               </button>
@@ -2741,7 +2741,7 @@ const AirportTaskTracker = () => {
                     onChange={(e) => setNewTeamMember(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTeamMember()}
                     placeholder="Enter team member name..."
-                    className="flex-1 bg-gray-400 border border-gray-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-400"
+                    className="flex-1 bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-400"
                   />
                   <button
                     onClick={addTeamMember}
@@ -2753,11 +2753,11 @@ const AirportTaskTracker = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {teamMembers.map((member) => (
-                    <div key={member} className="bg-gray-400 border border-gray-500 rounded-lg p-3 flex justify-between items-center gap-2">
+                    <div key={member} className="bg-slate-700 border border-slate-600 rounded-lg p-3 flex justify-between items-center gap-2">
                       <span className="text-white font-medium">👤 {member}</span>
                       <button
                         onClick={() => removeTeamMember(member)}
-                        className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer flex-shrink-0"
+                        className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer flex-shrink-0"
                         title="Delete"
                       >
                         <Trash2 size={16} />
@@ -2766,7 +2766,7 @@ const AirportTaskTracker = () => {
                   ))}
                 </div>
                 {teamMembers.length === 0 && (
-                  <p className="text-gray-400 text-center py-4">No team members added yet</p>
+                  <p className="text-slate-400 text-center py-4">No team members added yet</p>
                 )}
               </div>
 
@@ -2784,7 +2784,7 @@ const AirportTaskTracker = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {equipmentList.map((equip) => (
-                    <div key={equip.id} className="bg-gray-400 border border-gray-500 rounded-lg p-3 flex justify-between items-center gap-2">
+                    <div key={equip.id} className="bg-slate-700 border border-slate-600 rounded-lg p-3 flex justify-between items-center gap-2">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${getEquipmentStatusColor(equip.status)}`}></span>
                         <span className="text-white font-medium">{equip.name}</span>
@@ -2792,14 +2792,14 @@ const AirportTaskTracker = () => {
                       <div className="flex gap-1">
                         <button
                           onClick={() => openEditEquipment(equip)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer"
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => removeEquipment(equip.name)}
-                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer"
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 size={16} />
@@ -2809,15 +2809,15 @@ const AirportTaskTracker = () => {
                   ))}
                 </div>
                 {equipmentList.length === 0 && (
-                  <p className="text-gray-400 text-center py-4">No equipment or facilities added yet</p>
+                  <p className="text-slate-400 text-center py-4">No equipment or facilities added yet</p>
                 )}
               </div>
             </div>
 
-            <div className="bg-gray-700 border-t border-gray-600 p-4 flex justify-end flex-shrink-0">
+            <div className="bg-slate-800 border-t border-slate-700 p-4 flex justify-end flex-shrink-0">
               <button
                 onClick={() => setShowSettingsModal(false)}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
               >
                 Done
               </button>
@@ -2829,16 +2829,16 @@ const AirportTaskTracker = () => {
       {/* Replacement Parts Modal */}
       {showPartsModal && selectedEquipment && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-700 rounded-xl shadow-2xl max-w-3xl w-full border border-gray-600 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
-            <div className="bg-gray-700 border-b border-gray-600 p-6 flex justify-between items-center flex-shrink-0">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-3xl w-full border border-slate-700 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center flex-shrink-0">
               <div>
                 <h2 className="text-2xl font-bold text-white">Replacement Part Numbers</h2>
-                <p className="text-gray-400">{selectedEquipment.name}</p>
+                <p className="text-slate-400">{selectedEquipment.name}</p>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={printParts}
-                  className="p-2 text-gray-400 hover:text-white transition-colors"
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
                   title="Print"
                 >
                   <Printer size={20} />
@@ -2848,7 +2848,7 @@ const AirportTaskTracker = () => {
                     setShowPartsModal(false);
                     setPartForm({ part_component: '', part_number: '', last_sourced_from: '' });
                   }}
-                  className="p-2 text-gray-400 hover:text-white transition-colors"
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
                 >
                   <X size={24} />
                 </button>
@@ -2857,11 +2857,11 @@ const AirportTaskTracker = () => {
 
             <div className="p-6 overflow-y-auto flex-grow">
               {/* Add Part Form */}
-              <div className="bg-gray-400 rounded-lg p-4 mb-6">
+              <div className="bg-slate-700 rounded-lg p-4 mb-6">
                 <h3 className="text-white font-medium mb-4">Add New Part</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Part / Component *</label>
+                    <label className="block text-slate-400 text-sm mb-1">Part / Component *</label>
                     <input
                       type="text"
                       value={partForm.part_component}
@@ -2871,7 +2871,7 @@ const AirportTaskTracker = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Part Number *</label>
+                    <label className="block text-slate-400 text-sm mb-1">Part Number *</label>
                     <input
                       type="text"
                       value={partForm.part_number}
@@ -2881,7 +2881,7 @@ const AirportTaskTracker = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Last Sourced From</label>
+                    <label className="block text-slate-400 text-sm mb-1">Last Sourced From</label>
                     <input
                       type="text"
                       value={partForm.last_sourced_from}
@@ -2894,7 +2894,7 @@ const AirportTaskTracker = () => {
                 <button
                   onClick={addPart}
                   disabled={!partForm.part_component.trim() || !partForm.part_number.trim()}
-                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:text-gray-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:text-slate-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
                 >
                   <Plus size={18} />
                   Add Part
@@ -2908,19 +2908,19 @@ const AirportTaskTracker = () => {
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-gray-500">
-                          <th className="text-left text-gray-400 font-medium py-3 px-4">Part / Component</th>
-                          <th className="text-left text-gray-400 font-medium py-3 px-4">Part Number</th>
-                          <th className="text-left text-gray-400 font-medium py-3 px-4">Last Sourced From</th>
-                          <th className="text-right text-gray-400 font-medium py-3 px-4">Actions</th>
+                        <tr className="border-b border-slate-600">
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Part / Component</th>
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Part Number</th>
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Last Sourced From</th>
+                          <th className="text-right text-slate-400 font-medium py-3 px-4">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {equipmentParts.map(part => (
-                          <tr key={part.id} className="border-b border-gray-600 hover:bg-gray-500/50">
+                          <tr key={part.id} className="border-b border-slate-700 hover:bg-slate-700/50">
                             <td className="py-3 px-4 text-white">{part.part_component}</td>
                             <td className="py-3 px-4 text-white font-mono">{part.part_number}</td>
-                            <td className="py-3 px-4 text-gray-300">{part.last_sourced_from || '-'}</td>
+                            <td className="py-3 px-4 text-slate-300">{part.last_sourced_from || '-'}</td>
                             <td className="py-3 px-4 text-right">
                               <button
                                 onClick={() => deletePart(part.id)}
@@ -2936,7 +2936,7 @@ const AirportTaskTracker = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-slate-400">
                     <Package size={48} className="mx-auto mb-3 opacity-50" />
                     <p>No replacement parts recorded yet</p>
                     <p className="text-sm">Add parts using the form above</p>
@@ -2945,13 +2945,13 @@ const AirportTaskTracker = () => {
               </div>
             </div>
 
-            <div className="bg-gray-700 border-t border-gray-600 p-4 flex justify-end flex-shrink-0">
+            <div className="bg-slate-800 border-t border-slate-700 p-4 flex justify-end flex-shrink-0">
               <button
                 onClick={() => {
                   setShowPartsModal(false);
                   setPartForm({ part_component: '', part_number: '', last_sourced_from: '' });
                 }}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
               >
                 Done
               </button>
