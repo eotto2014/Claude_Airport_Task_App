@@ -1231,36 +1231,36 @@ const AirportTaskTracker = () => {
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-2 border-b border-slate-700 no-print">
+          <div className="flex justify-center gap-3 py-2 no-print">
             <button
               onClick={() => { setActiveTab('active'); setSelectedEquipment(null); }}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
                 activeTab === 'active'
-                  ? 'text-cyan-400 border-b-2 border-cyan-400'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
             </button>
             <button
               onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
-              className={`px-4 py-2 font-medium transition-colors ${
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
                 activeTab === 'completed'
-                  ? 'text-cyan-400 border-b-2 border-cyan-400'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
               Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
             </button>
             <button
               onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
-              className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 ${
                 activeTab === 'equipment'
-                  ? 'text-cyan-400 border-b-2 border-cyan-400'
-                  : 'text-slate-400 hover:text-slate-300'
+                  ? 'bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-purple-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
-              <Truck size={16} />
+              <Truck size={18} />
               Equipment & Facilities ({equipmentList.length})
             </button>
           </div>
@@ -1965,15 +1965,15 @@ const AirportTaskTracker = () => {
               )}
 
               {/* Replacement Parts Button */}
-              <div className="mt-6 pt-4 border-t border-slate-700">
+              <div className="mt-6 pt-4 border-t border-slate-700 flex justify-center">
                 <button
                   onClick={() => {
                     loadEquipmentParts(selectedEquipment.id);
                     setShowPartsModal(true);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-amber-500/30 hover:scale-105 hover:shadow-xl"
                 >
-                  <Package size={18} />
+                  <Package size={20} />
                   Replacement Part Numbers
                 </button>
               </div>
