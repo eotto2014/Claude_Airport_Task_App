@@ -900,11 +900,11 @@ const AirportTaskTracker = () => {
   // Get all tasks (including completed) for equipment-related queries
   const getAllTasks = () => tasks;
 
-  // Get tasks for equipment status sheet
+  // Get tasks for equipment status sheet (includes services and fuel quality control)
   const getUpcomingServices = (equipmentName: string) => {
     return tasks.filter(t =>
       t.equipment === equipmentName &&
-      t.category === 'services' &&
+      (t.category === 'services' || t.category === 'fuel-qc') &&
       t.status !== 'completed'
     );
   };
@@ -920,7 +920,7 @@ const AirportTaskTracker = () => {
   const getServiceHistory = (equipmentName: string) => {
     return tasks.filter(t =>
       t.equipment === equipmentName &&
-      t.category === 'services' &&
+      (t.category === 'services' || t.category === 'fuel-qc') &&
       t.status === 'completed'
     ).sort((a, b) => {
       const dateA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
@@ -1812,7 +1812,7 @@ const AirportTaskTracker = () => {
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Clock size={20} className="text-blue-400" />
-                Upcoming Services ({getUpcomingServices(selectedEquipment.name).length})
+                Upcoming Services and Inspections ({getUpcomingServices(selectedEquipment.name).length})
               </h3>
               {getUpcomingServices(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
@@ -1884,7 +1884,7 @@ const AirportTaskTracker = () => {
             <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <History size={20} className="text-green-400" />
-                Service History ({getServiceHistory(selectedEquipment.name).length})
+                Service and Inspection History ({getServiceHistory(selectedEquipment.name).length})
               </h3>
               {getServiceHistory(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
