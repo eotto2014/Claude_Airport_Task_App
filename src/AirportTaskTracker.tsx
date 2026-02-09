@@ -1243,16 +1243,6 @@ const AirportTaskTracker = () => {
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
             </button>
             <button
-              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
-              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
-                activeTab === 'completed'
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
-                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
-              }`}
-            >
-              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
-            </button>
-            <button
               onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
               className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg flex items-center gap-2 ${
                 activeTab === 'equipment'
@@ -1262,6 +1252,16 @@ const AirportTaskTracker = () => {
             >
               <Truck size={18} />
               Equipment & Facilities ({equipmentList.length})
+            </button>
+            <button
+              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
+              className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow-lg ${
+                activeTab === 'completed'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-green-500/30 scale-105'
+                  : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
+              }`}
+            >
+              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
             </button>
           </div>
 
