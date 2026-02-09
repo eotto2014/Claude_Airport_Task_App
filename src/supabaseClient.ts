@@ -67,3 +67,13 @@ export interface Equipment {
   ownership: string | null
   created_at: string
 }
+
+export interface EquipmentPart {
+  id: number
+  equipment_id: number
+  part_component: string
+  part_number: string
+  last_sourced_from: string | null
+  created_at: string
+  updated_at: string
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer, GripVertical, ArrowUpDown, Truck, Building2, AlertTriangle, ChevronLeft, Wrench, Clock, History, Warehouse, Fuel, Lightbulb, Wind, Flame } from 'lucide-react';
-import { supabase, Task, TaskRemark, TeamMember, Equipment } from './supabaseClient';
+import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer, GripVertical, ArrowUpDown, Truck, Building2, AlertTriangle, ChevronLeft, Wrench, Clock, History, Warehouse, Fuel, Lightbulb, Wind, Flame, Package } from 'lucide-react';
+import { supabase, Task, TaskRemark, TeamMember, Equipment, EquipmentPart } from './supabaseClient';
 
 const AirportTaskTracker = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -42,6 +42,15 @@ const AirportTaskTracker = () => {
   });
 
   const [equipmentViewFilter, setEquipmentViewFilter] = useState<'all' | 'equipment' | 'facilities'>('all');
+
+  // Parts management state
+  const [equipmentParts, setEquipmentParts] = useState<EquipmentPart[]>([]);
+  const [showPartsModal, setShowPartsModal] = useState(false);
+  const [partForm, setPartForm] = useState({
+    part_component: '',
+    part_number: '',
+    last_sourced_from: '',
+  });
 
   // Equipment types (vehicles, trucks, etc.)
   const vehicleEquipmentTypes = [
@@ -250,6 +259,110 @@ const AirportTaskTracker = () => {
 
     if (error) throw error;
     setEquipmentList(data || []);
+  };
+
+  const loadEquipmentParts = async (equipmentId: number) => {
+    const { data, error } = await supabase
+      .from('equipment_parts')
+      .select('*')
+      .eq('equipment_id', equipmentId)
+      .order('part_component');
+
+    if (error) {
+      console.error('Error loading parts:', error);
+      return;
+    }
+    setEquipmentParts(data || []);
+  };
+
+  const addPart = async () => {
+    if (!selectedEquipment || !partForm.part_component.trim() || !partForm.part_number.trim()) return;
+
+    const { error } = await supabase
+      .from('equipment_parts')
+      .insert({
+        equipment_id: selectedEquipment.id,
+        part_component: partForm.part_component.trim(),
+        part_number: partForm.part_number.trim(),
+        last_sourced_from: partForm.last_sourced_from.trim() || null,
+      });
+
+    if (error) {
+      console.error('Error adding part:', error);
+      return;
+    }
+
+    setPartForm({ part_component: '', part_number: '', last_sourced_from: '' });
+    loadEquipmentParts(selectedEquipment.id);
+  };
+
+  const deletePart = async (partId: number) => {
+    if (!selectedEquipment) return;
+
+    const { error } = await supabase
+      .from('equipment_parts')
+      .delete()
+      .eq('id', partId);
+
+    if (error) {
+      console.error('Error deleting part:', error);
+      return;
+    }
+
+    loadEquipmentParts(selectedEquipment.id);
+  };
+
+  const printParts = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow || !selectedEquipment) return;
+
+    const partsHtml = equipmentParts.map(part => `
+      <tr>
+        <td style="border: 1px solid #ddd; padding: 8px;">${part.part_component}</td>
+        <td style="border: 1px solid #ddd; padding: 8px; font-family: monospace;">${part.part_number}</td>
+        <td style="border: 1px solid #ddd; padding: 8px;">${part.last_sourced_from || '-'}</td>
+      </tr>
+    `).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Replacement Parts - ${selectedEquipment.name}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; }
+          h1 { color: #333; }
+          table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+          th { background-color: #f4f4f4; border: 1px solid #ddd; padding: 12px; text-align: left; }
+          td { border: 1px solid #ddd; padding: 8px; }
+          .header { margin-bottom: 20px; }
+          .date { color: #666; font-size: 14px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Replacement Part Numbers</h1>
+          <h2>${selectedEquipment.name}</h2>
+          <p class="date">Generated: ${new Date().toLocaleDateString()}</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Part / Component</th>
+              <th>Part Number</th>
+              <th>Last Sourced From</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${partsHtml || '<tr><td colspan="3" style="text-align: center; padding: 20px;">No parts recorded</td></tr>'}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.print();
   };
 
   const setupRealtimeSubscriptions = () => {
@@ -1806,6 +1919,20 @@ const AirportTaskTracker = () => {
                   <p className="text-white">{selectedEquipment.notes}</p>
                 </div>
               )}
+
+              {/* Replacement Parts Button */}
+              <div className="mt-6 pt-4 border-t border-slate-700">
+                <button
+                  onClick={() => {
+                    loadEquipmentParts(selectedEquipment.id);
+                    setShowPartsModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                >
+                  <Package size={18} />
+                  Replacement Part Numbers
+                </button>
+              </div>
             </div>
 
             {/* Upcoming Services */}
@@ -2582,6 +2709,140 @@ const AirportTaskTracker = () => {
             <div className="bg-slate-800 border-t border-slate-700 p-4 flex justify-end flex-shrink-0">
               <button
                 onClick={() => setShowSettingsModal(false)}
+                className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Replacement Parts Modal */}
+      {showPartsModal && selectedEquipment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 rounded-xl shadow-2xl max-w-3xl w-full border border-slate-700 flex flex-col" style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className="bg-slate-800 border-b border-slate-700 p-6 flex justify-between items-center flex-shrink-0">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Replacement Part Numbers</h2>
+                <p className="text-slate-400">{selectedEquipment.name}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={printParts}
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
+                  title="Print"
+                >
+                  <Printer size={20} />
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPartsModal(false);
+                    setPartForm({ part_component: '', part_number: '', last_sourced_from: '' });
+                  }}
+                  className="p-2 text-slate-400 hover:text-white transition-colors"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-grow">
+              {/* Add Part Form */}
+              <div className="bg-slate-700 rounded-lg p-4 mb-6">
+                <h3 className="text-white font-medium mb-4">Add New Part</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-slate-400 text-sm mb-1">Part / Component *</label>
+                    <input
+                      type="text"
+                      value={partForm.part_component}
+                      onChange={(e) => setPartForm({...partForm, part_component: e.target.value})}
+                      placeholder="e.g., Fuel Filter"
+                      className="w-full bg-slate-600 border border-slate-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-sm mb-1">Part Number *</label>
+                    <input
+                      type="text"
+                      value={partForm.part_number}
+                      onChange={(e) => setPartForm({...partForm, part_number: e.target.value})}
+                      placeholder="e.g., FF-12345"
+                      className="w-full bg-slate-600 border border-slate-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-sm mb-1">Last Sourced From</label>
+                    <input
+                      type="text"
+                      value={partForm.last_sourced_from}
+                      onChange={(e) => setPartForm({...partForm, last_sourced_from: e.target.value})}
+                      placeholder="e.g., AutoZone, Amazon"
+                      className="w-full bg-slate-600 border border-slate-500 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={addPart}
+                  disabled={!partForm.part_component.trim() || !partForm.part_number.trim()}
+                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:text-slate-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+                >
+                  <Plus size={18} />
+                  Add Part
+                </button>
+              </div>
+
+              {/* Parts List */}
+              <div>
+                <h3 className="text-white font-medium mb-4">Parts List ({equipmentParts.length})</h3>
+                {equipmentParts.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-slate-600">
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Part / Component</th>
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Part Number</th>
+                          <th className="text-left text-slate-400 font-medium py-3 px-4">Last Sourced From</th>
+                          <th className="text-right text-slate-400 font-medium py-3 px-4">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {equipmentParts.map(part => (
+                          <tr key={part.id} className="border-b border-slate-700 hover:bg-slate-700/50">
+                            <td className="py-3 px-4 text-white">{part.part_component}</td>
+                            <td className="py-3 px-4 text-white font-mono">{part.part_number}</td>
+                            <td className="py-3 px-4 text-slate-300">{part.last_sourced_from || '-'}</td>
+                            <td className="py-3 px-4 text-right">
+                              <button
+                                onClick={() => deletePart(part.id)}
+                                className="text-red-400 hover:text-red-300 p-1"
+                                title="Delete part"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-400">
+                    <Package size={48} className="mx-auto mb-3 opacity-50" />
+                    <p>No replacement parts recorded yet</p>
+                    <p className="text-sm">Add parts using the form above</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-slate-800 border-t border-slate-700 p-4 flex justify-end flex-shrink-0">
+              <button
+                onClick={() => {
+                  setShowPartsModal(false);
+                  setPartForm({ part_component: '', part_number: '', last_sourced_from: '' });
+                }}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-2 rounded-lg hover:from-green-500 hover:to-emerald-500 transition-colors"
               >
                 Done
