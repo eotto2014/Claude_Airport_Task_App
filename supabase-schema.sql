@@ -40,8 +40,23 @@ CREATE TABLE IF NOT EXISTS team_members (
 CREATE TABLE IF NOT EXISTS equipment (
   id BIGSERIAL PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
+  equipment_type TEXT DEFAULT 'vehicle',
+  year INTEGER,
+  make TEXT,
+  model TEXT,
+  vin TEXT,
+  license_plate TEXT,
+  acquisition_date DATE,
+  mileage_hours INTEGER,
+  registration_date DATE,
+  registration_renewal_date DATE,
+  insurance_expiration DATE,
+  status TEXT DEFAULT 'operational',
+  notes TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Status options for equipment: 'operational', 'down', 'limited', 'out-of-service'
 
 -- Insert default team members
 INSERT INTO team_members (name) VALUES
@@ -101,7 +116,10 @@ CREATE INDEX IF NOT EXISTS idx_tasks_category ON tasks(category);
 CREATE INDEX IF NOT EXISTS idx_tasks_assignee ON tasks(assignee);
 CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_parent_task_id ON tasks(parent_task_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_equipment ON tasks(equipment);
 CREATE INDEX IF NOT EXISTS idx_task_remarks_task_id ON task_remarks(task_id);
+CREATE INDEX IF NOT EXISTS idx_equipment_status ON equipment(status);
+CREATE INDEX IF NOT EXISTS idx_equipment_type ON equipment(equipment_type);
 
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()

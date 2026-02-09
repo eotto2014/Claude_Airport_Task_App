@@ -1,24 +1,84 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer, GripVertical, ArrowUpDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, MessageSquare, X, Calendar, Repeat, Settings, Printer, GripVertical, ArrowUpDown, Truck, Building2, AlertTriangle, ChevronLeft, Wrench, Clock, History, Warehouse, Fuel, Lightbulb, Wind, Flame } from 'lucide-react';
 import { supabase, Task, TaskRemark, TeamMember, Equipment } from './supabaseClient';
 
 const AirportTaskTracker = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [teamMembers, setTeamMembers] = useState<string[]>([]);
-  const [equipment, setEquipment] = useState<string[]>([]);
+  const [equipmentList, setEquipmentList] = useState<Equipment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'completed' | 'equipment'>('active');
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [showRemarksModal, setShowRemarksModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(null);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [currentTaskForRemarks, setCurrentTaskForRemarks] = useState<Task | null>(null);
   const [newRemark, setNewRemark] = useState('');
   const [newTeamMember, setNewTeamMember] = useState('');
-  const [newEquipment, setNewEquipment] = useState('');
   const [sortBy, setSortBy] = useState<'custom' | 'date'>('custom');
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [draggedSubtask, setDraggedSubtask] = useState<Task | null>(null);
+
+  const [equipmentForm, setEquipmentForm] = useState({
+    name: '',
+    equipment_type: 'vehicle',
+    year: '',
+    make: '',
+    model: '',
+    vin: '',
+    license_plate: '',
+    acquisition_date: '',
+    mileage_hours: '',
+    registration_date: '',
+    registration_renewal_date: '',
+    insurance_expiration: '',
+    status: 'operational',
+    notes: '',
+    description: '',
+    ownership: 'business',
+  });
+
+  const [equipmentViewFilter, setEquipmentViewFilter] = useState<'all' | 'equipment' | 'facilities'>('all');
+
+  // Equipment types (vehicles, trucks, etc.)
+  const vehicleEquipmentTypes = [
+    { id: 'vehicle', label: 'Vehicle' },
+    { id: 'equipment', label: 'Equipment' },
+    { id: 'system', label: 'System' },
+  ];
+
+  // Facility types
+  const facilityTypes = [
+    { id: 'hangar-door', label: 'Hangar Door' },
+    { id: 'fuel-farm', label: 'Fuel Farm' },
+    { id: 'runway-lights', label: 'Runway Lights' },
+    { id: 'hvac', label: 'HVAC System' },
+    { id: 'boiler', label: 'Boiler' },
+    { id: 'facility', label: 'Other Facility' },
+  ];
+
+  const allEquipmentTypes = [...vehicleEquipmentTypes, ...facilityTypes];
+
+  const ownershipOptions = [
+    { id: 'business', label: 'PJC' },
+    { id: 'county', label: 'County' },
+    { id: 'shared', label: 'Shared' },
+    { id: 'leased', label: 'Leased' },
+  ];
+
+  const equipmentStatuses = [
+    { id: 'operational', label: 'Operational', color: 'bg-green-500' },
+    { id: 'limited', label: 'Limited', color: 'bg-yellow-500' },
+    { id: 'down', label: 'Down', color: 'bg-red-500' },
+    { id: 'out-of-service', label: 'Out of Service', color: 'bg-slate-500' },
+  ];
+
+  const isFacilityType = (type: string) => {
+    return facilityTypes.some(t => t.id === type);
+  };
 
   // Filters
   const [filters, setFilters] = useState({
@@ -41,9 +101,26 @@ const AirportTaskTracker = () => {
     notes: '',
     isRecurring: false,
     recurringInterval: 'weekly',
+    recurringDayOfWeek: 1 as number | null, // Monday default
+    recurringDayOfMonth: 1 as number | null, // 1st of month default
     isMajorTask: false,
     parentTaskId: null as number | null,
   });
+
+  const daysOfWeek = [
+    { id: 0, label: 'Sunday' },
+    { id: 1, label: 'Monday' },
+    { id: 2, label: 'Tuesday' },
+    { id: 3, label: 'Wednesday' },
+    { id: 4, label: 'Thursday' },
+    { id: 5, label: 'Friday' },
+    { id: 6, label: 'Saturday' },
+  ];
+
+  const daysOfMonth = Array.from({ length: 31 }, (_, i) => ({
+    id: i + 1,
+    label: `${i + 1}${getOrdinalSuffix(i + 1)}`,
+  }));
 
   const categories = [
     { id: 'fuel-qc', label: 'Fuel Quality Control', color: 'bg-violet-500' },
@@ -161,11 +238,11 @@ const AirportTaskTracker = () => {
   const loadEquipment = async () => {
     const { data, error } = await supabase
       .from('equipment')
-      .select('name')
+      .select('*')
       .order('name');
 
     if (error) throw error;
-    setEquipment(data?.map(e => e.name) || []);
+    setEquipmentList(data || []);
   };
 
   const setupRealtimeSubscriptions = () => {
@@ -215,6 +292,8 @@ const AirportTaskTracker = () => {
       notes: '',
       isRecurring: false,
       recurringInterval: 'weekly',
+      recurringDayOfWeek: 1,
+      recurringDayOfMonth: 1,
       isMajorTask: false,
       parentTaskId: null,
     });
@@ -241,6 +320,8 @@ const AirportTaskTracker = () => {
       notes: task.notes || '',
       isRecurring: task.is_recurring,
       recurringInterval: task.recurring_interval || 'weekly',
+      recurringDayOfWeek: task.recurring_day_of_week ?? 1,
+      recurringDayOfMonth: task.recurring_day_of_month ?? 1,
       isMajorTask: task.is_major_task || false,
       parentTaskId: task.parent_task_id || null,
     });
@@ -263,6 +344,8 @@ const AirportTaskTracker = () => {
         notes: taskForm.notes || null,
         is_recurring: taskForm.isRecurring,
         recurring_interval: taskForm.isRecurring ? taskForm.recurringInterval : null,
+        recurring_day_of_week: taskForm.isRecurring && taskForm.recurringInterval === 'weekly' ? taskForm.recurringDayOfWeek : null,
+        recurring_day_of_month: taskForm.isRecurring && ['monthly', 'quarterly', 'annually'].includes(taskForm.recurringInterval) ? taskForm.recurringDayOfMonth : null,
         is_major_task: taskForm.isMajorTask,
         parent_task_id: taskForm.parentTaskId || null,
       };
@@ -464,7 +547,7 @@ const AirportTaskTracker = () => {
     try {
       // If marking a recurring task as completed, handle it specially
       if (task.is_recurring && newStatus === 'completed') {
-        // Calculate next due date based on interval
+        // Calculate next due date based on interval and day settings
         const currentDueDate = task.due_date ? new Date(task.due_date) : new Date();
         let nextDueDate = new Date(currentDueDate);
 
@@ -473,16 +556,43 @@ const AirportTaskTracker = () => {
             nextDueDate.setDate(nextDueDate.getDate() + 1);
             break;
           case 'weekly':
-            nextDueDate.setDate(nextDueDate.getDate() + 7);
+            // Find next occurrence of the specified day of week
+            if (task.recurring_day_of_week !== null) {
+              const targetDay = task.recurring_day_of_week;
+              nextDueDate.setDate(nextDueDate.getDate() + 7); // Start from next week
+              // Adjust to the correct day of week
+              const currentDay = nextDueDate.getDay();
+              const daysUntilTarget = (targetDay - currentDay + 7) % 7;
+              nextDueDate.setDate(nextDueDate.getDate() - 7 + daysUntilTarget);
+              // If we ended up on the same date or earlier, add a week
+              if (nextDueDate <= currentDueDate) {
+                nextDueDate.setDate(nextDueDate.getDate() + 7);
+              }
+            } else {
+              nextDueDate.setDate(nextDueDate.getDate() + 7);
+            }
             break;
           case 'monthly':
             nextDueDate.setMonth(nextDueDate.getMonth() + 1);
+            if (task.recurring_day_of_month !== null) {
+              // Set to the specified day of month
+              const targetDay = Math.min(task.recurring_day_of_month, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate());
+              nextDueDate.setDate(targetDay);
+            }
             break;
           case 'quarterly':
             nextDueDate.setMonth(nextDueDate.getMonth() + 3);
+            if (task.recurring_day_of_month !== null) {
+              const targetDay = Math.min(task.recurring_day_of_month, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate());
+              nextDueDate.setDate(targetDay);
+            }
             break;
           case 'annually':
             nextDueDate.setFullYear(nextDueDate.getFullYear() + 1);
+            if (task.recurring_day_of_month !== null) {
+              const targetDay = Math.min(task.recurring_day_of_month, new Date(nextDueDate.getFullYear(), nextDueDate.getMonth() + 1, 0).getDate());
+              nextDueDate.setDate(targetDay);
+            }
             break;
         }
 
@@ -513,6 +623,8 @@ const AirportTaskTracker = () => {
             notes: task.notes,
             is_recurring: true,
             recurring_interval: task.recurring_interval,
+            recurring_day_of_week: task.recurring_day_of_week,
+            recurring_day_of_month: task.recurring_day_of_month,
           }]);
 
         if (insertError) throw insertError;
@@ -607,33 +719,121 @@ const AirportTaskTracker = () => {
     }
   };
 
-  const addEquipment = async () => {
-    if (!newEquipment.trim()) return;
+  const resetEquipmentForm = () => {
+    setEquipmentForm({
+      name: '',
+      equipment_type: 'vehicle',
+      year: '',
+      make: '',
+      model: '',
+      vin: '',
+      license_plate: '',
+      acquisition_date: '',
+      mileage_hours: '',
+      registration_date: '',
+      registration_renewal_date: '',
+      insurance_expiration: '',
+      status: 'operational',
+      notes: '',
+      description: '',
+      ownership: 'business',
+    });
+  };
+
+  const openAddEquipment = () => {
+    resetEquipmentForm();
+    setEditingEquipment(null);
+    setShowEquipmentModal(true);
+  };
+
+  const openEditEquipment = (equip: Equipment) => {
+    setEquipmentForm({
+      name: equip.name,
+      equipment_type: equip.equipment_type || 'vehicle',
+      year: equip.year?.toString() || '',
+      make: equip.make || '',
+      model: equip.model || '',
+      vin: equip.vin || '',
+      license_plate: equip.license_plate || '',
+      acquisition_date: equip.acquisition_date || '',
+      mileage_hours: equip.mileage_hours?.toString() || '',
+      registration_date: equip.registration_date || '',
+      registration_renewal_date: equip.registration_renewal_date || '',
+      insurance_expiration: equip.insurance_expiration || '',
+      status: equip.status || 'operational',
+      notes: equip.notes || '',
+      description: equip.description || '',
+      ownership: equip.ownership || 'business',
+    });
+    setEditingEquipment(equip);
+    setShowEquipmentModal(true);
+  };
+
+  const saveEquipment = async () => {
+    if (!equipmentForm.name.trim()) return;
 
     try {
-      const { error } = await supabase
-        .from('equipment')
-        .insert([{ name: newEquipment.trim() }]);
+      const equipmentData: any = {
+        name: equipmentForm.name.trim(),
+        equipment_type: equipmentForm.equipment_type,
+        year: equipmentForm.year ? parseInt(equipmentForm.year) : null,
+        make: equipmentForm.make || null,
+        model: equipmentForm.model || null,
+        vin: equipmentForm.vin || null,
+        license_plate: equipmentForm.license_plate || null,
+        acquisition_date: equipmentForm.acquisition_date || null,
+        mileage_hours: equipmentForm.mileage_hours ? parseInt(equipmentForm.mileage_hours) : null,
+        registration_date: equipmentForm.registration_date || null,
+        registration_renewal_date: equipmentForm.registration_renewal_date || null,
+        insurance_expiration: equipmentForm.insurance_expiration || null,
+        status: equipmentForm.status,
+        notes: equipmentForm.notes || null,
+        description: equipmentForm.description || null,
+        ownership: equipmentForm.ownership || null,
+      };
 
-      if (error) {
-        if (error.code === '23505') {
-          alert('This equipment already exists.');
-        } else {
+      if (editingEquipment) {
+        const { error } = await supabase
+          .from('equipment')
+          .update(equipmentData)
+          .eq('id', editingEquipment.id);
+
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('equipment')
+          .insert([equipmentData]);
+
+        if (error) {
+          if (error.code === '23505') {
+            alert('Equipment with this name already exists.');
+            return;
+          }
           throw error;
         }
-        return;
       }
 
-      setNewEquipment('');
+      setShowEquipmentModal(false);
+      resetEquipmentForm();
       loadEquipment();
+
+      // Refresh selected equipment if we just edited it
+      if (editingEquipment && selectedEquipment?.id === editingEquipment.id) {
+        const { data } = await supabase
+          .from('equipment')
+          .select('*')
+          .eq('id', editingEquipment.id)
+          .single();
+        if (data) setSelectedEquipment(data);
+      }
     } catch (error) {
-      console.error('Error adding equipment:', error);
-      alert('Error adding equipment. Please try again.');
+      console.error('Error saving equipment:', error);
+      alert('Error saving equipment. Please try again.');
     }
   };
 
   const removeEquipment = async (equipName: string) => {
-    if (!window.confirm(`Remove ${equipName} from equipment list?`)) return;
+    if (!window.confirm(`Remove ${equipName} from equipment list? This will not delete any tasks associated with it.`)) return;
 
     try {
       const { error } = await supabase
@@ -649,11 +849,114 @@ const AirportTaskTracker = () => {
     }
   };
 
+  const getEquipmentStatusColor = (status: string) => {
+    const statusInfo = equipmentStatuses.find(s => s.id === status);
+    return statusInfo?.color || 'bg-slate-500';
+  };
+
+  const getEquipmentStatusLabel = (status: string) => {
+    const statusInfo = equipmentStatuses.find(s => s.id === status);
+    return statusInfo?.label || 'Unknown';
+  };
+
+  const getEquipmentIcon = (type: string) => {
+    switch (type) {
+      case 'vehicle':
+        return <Truck size={20} />;
+      case 'hangar-door':
+        return <Warehouse size={20} />;
+      case 'fuel-farm':
+        return <Fuel size={20} />;
+      case 'runway-lights':
+        return <Lightbulb size={20} />;
+      case 'hvac':
+        return <Wind size={20} />;
+      case 'boiler':
+        return <Flame size={20} />;
+      case 'facility':
+        return <Building2 size={20} />;
+      default:
+        return <Wrench size={20} />;
+    }
+  };
+
+  const getEquipmentTypeLabel = (type: string) => {
+    const allTypes = [...vehicleEquipmentTypes, ...facilityTypes];
+    return allTypes.find(t => t.id === type)?.label || type;
+  };
+
+  const getOwnershipLabel = (ownership: string | null) => {
+    if (!ownership) return null;
+    return ownershipOptions.find(o => o.id === ownership)?.label || ownership;
+  };
+
+  // Get all tasks (including completed) for equipment-related queries
+  const getAllTasks = () => tasks;
+
+  // Get tasks for equipment status sheet
+  const getUpcomingServices = (equipmentName: string) => {
+    return tasks.filter(t =>
+      t.equipment === equipmentName &&
+      t.category === 'services' &&
+      t.status !== 'completed'
+    );
+  };
+
+  const getCurrentFaults = (equipmentName: string) => {
+    return tasks.filter(t =>
+      t.equipment === equipmentName &&
+      t.category === 'faults' &&
+      t.status !== 'completed'
+    );
+  };
+
+  const getServiceHistory = (equipmentName: string) => {
+    return tasks.filter(t =>
+      t.equipment === equipmentName &&
+      t.category === 'services' &&
+      t.status === 'completed'
+    ).sort((a, b) => {
+      const dateA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+      const dateB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+      return dateB - dateA;
+    });
+  };
+
+  const getFaultHistory = (equipmentName: string) => {
+    return tasks.filter(t =>
+      t.equipment === equipmentName &&
+      t.category === 'faults' &&
+      t.status === 'completed'
+    ).sort((a, b) => {
+      const dateA = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+      const dateB = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+      return dateB - dateA;
+    });
+  };
+
+  const isDateExpiringSoon = (dateStr: string | null, daysThreshold: number = 30) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const today = new Date();
+    const daysUntil = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    return daysUntil >= 0 && daysUntil <= daysThreshold;
+  };
+
+  const isDateExpired = (dateStr: string | null) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    const today = new Date();
+    return date < today;
+  };
+
   const getFilteredTasks = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
     const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    // Don't filter tasks when on equipment tab
+    if (activeTab === 'equipment') return [];
 
     let filtered = tasks.filter(task => {
       // Tab filter
@@ -709,6 +1012,17 @@ const AirportTaskTracker = () => {
     return filtered;
   };
 
+  const getOrdinalSuffix = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return s[(v - 20) % 10] || s[v] || s[0];
+  };
+
+  const getDayOfWeekLabel = (dayIndex: number | null) => {
+    if (dayIndex === null) return '';
+    return daysOfWeek.find(d => d.id === dayIndex)?.label || '';
+  };
+
   const getCategoryInfo = (id: string) => categories.find(c => c.id === id);
   const getPriorityInfo = (id: string) => priorities.find(p => p.id === id);
   const getStatusLabel = (id: string) => statuses.find(s => s.id === id)?.label;
@@ -761,7 +1075,7 @@ const AirportTaskTracker = () => {
           {/* Tabs */}
           <div className="flex gap-2 border-b border-slate-700 no-print">
             <button
-              onClick={() => setActiveTab('active')}
+              onClick={() => { setActiveTab('active'); setSelectedEquipment(null); }}
               className={`px-4 py-2 font-medium transition-colors ${
                 activeTab === 'active'
                   ? 'text-cyan-400 border-b-2 border-cyan-400'
@@ -771,7 +1085,7 @@ const AirportTaskTracker = () => {
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
             </button>
             <button
-              onClick={() => setActiveTab('completed')}
+              onClick={() => { setActiveTab('completed'); setSelectedEquipment(null); }}
               className={`px-4 py-2 font-medium transition-colors ${
                 activeTab === 'completed'
                   ? 'text-cyan-400 border-b-2 border-cyan-400'
@@ -780,18 +1094,31 @@ const AirportTaskTracker = () => {
             >
               Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
             </button>
+            <button
+              onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
+              className={`px-4 py-2 font-medium transition-colors flex items-center gap-2 ${
+                activeTab === 'equipment'
+                  ? 'text-cyan-400 border-b-2 border-cyan-400'
+                  : 'text-slate-400 hover:text-slate-300'
+              }`}
+            >
+              <Truck size={16} />
+              Equipment & Facilities ({equipmentList.length})
+            </button>
           </div>
 
           {/* Print header */}
           <div className="print-only">
             <h2 className="text-xl font-bold mb-2">
-              {activeTab === 'active' ? 'Active Tasks' : 'Completed Tasks'}
+              {activeTab === 'active' ? 'Active Tasks' : activeTab === 'completed' ? 'Completed Tasks' : selectedEquipment ? `Equipment Status Sheet: ${selectedEquipment.name}` : 'Equipment & Facilities'}
             </h2>
             <p className="text-sm mb-2">Printed: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}</p>
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters and Tasks List - only show on task tabs */}
+        {activeTab !== 'equipment' && (
+        <>
         <div className="bg-slate-800 rounded-xl shadow-xl p-4 mb-6 border border-slate-700 no-print">
           <div className="flex flex-wrap gap-3">
             <select
@@ -836,7 +1163,7 @@ const AirportTaskTracker = () => {
               className="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
               <option value="all">All Equipment</option>
-              {equipment.map(e => <option key={e} value={e}>{e}</option>)}
+              {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
             </select>
 
             <select
@@ -1137,7 +1464,741 @@ const AirportTaskTracker = () => {
             })
           )}
         </div>
+        </>
+        )}
+
+        {/* Equipment List View */}
+        {activeTab === 'equipment' && !selectedEquipment && (
+          <div className="space-y-4">
+            {/* Filter Tabs */}
+            <div className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setEquipmentViewFilter('all')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                    equipmentViewFilter === 'all'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  All ({equipmentList.length})
+                </button>
+                <button
+                  onClick={() => setEquipmentViewFilter('equipment')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    equipmentViewFilter === 'equipment'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  <Truck size={16} />
+                  Equipment ({equipmentList.filter(e => !isFacilityType(e.equipment_type)).length})
+                </button>
+                <button
+                  onClick={() => setEquipmentViewFilter('facilities')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                    equipmentViewFilter === 'facilities'
+                      ? 'bg-cyan-600 text-white'
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  <Building2 size={16} />
+                  Facilities ({equipmentList.filter(e => isFacilityType(e.equipment_type)).length})
+                </button>
+              </div>
+            </div>
+
+            {/* Equipment/Facilities Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {equipmentList
+                .filter(equip => {
+                  if (equipmentViewFilter === 'all') return true;
+                  if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type);
+                  if (equipmentViewFilter === 'facilities') return isFacilityType(equip.equipment_type);
+                  return true;
+                })
+                .map(equip => {
+                const upcomingServices = getUpcomingServices(equip.name);
+                const currentFaults = getCurrentFaults(equip.name);
+                const hasAlerts = isDateExpiringSoon(equip.registration_renewal_date) ||
+                                 isDateExpiringSoon(equip.insurance_expiration) ||
+                                 isDateExpired(equip.registration_renewal_date) ||
+                                 isDateExpired(equip.insurance_expiration);
+                const isFacility = isFacilityType(equip.equipment_type);
+
+                return (
+                  <div
+                    key={equip.id}
+                    onClick={() => setSelectedEquipment(equip)}
+                    className={`bg-slate-800 rounded-xl p-5 border ${isFacility ? 'border-purple-700 hover:border-purple-500' : 'border-slate-700 hover:border-cyan-500'} cursor-pointer transition-all hover:shadow-lg`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={isFacility ? 'text-purple-400' : 'text-cyan-400'}>
+                          {getEquipmentIcon(equip.equipment_type)}
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold">{equip.name}</h3>
+                          <p className="text-slate-400 text-sm">{getEquipmentTypeLabel(equip.equipment_type)}</p>
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold text-white ${getEquipmentStatusColor(equip.status)}`}>
+                        {getEquipmentStatusLabel(equip.status)}
+                      </span>
+                    </div>
+
+                    {/* Ownership for facilities */}
+                    {isFacility && equip.ownership && (
+                      <div className="mb-2 text-sm">
+                        <span className="text-slate-500">Owner: </span>
+                        <span className="text-slate-300">{getOwnershipLabel(equip.ownership)}</span>
+                      </div>
+                    )}
+
+                    {/* Quick Stats */}
+                    <div className="flex gap-4 text-sm">
+                      {upcomingServices.length > 0 && (
+                        <span className="text-blue-400 flex items-center gap-1">
+                          <Clock size={14} />
+                          {upcomingServices.length} service{upcomingServices.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                      {currentFaults.length > 0 && (
+                        <span className="text-red-400 flex items-center gap-1">
+                          <AlertTriangle size={14} />
+                          {currentFaults.length} fault{currentFaults.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Alert Badge */}
+                    {hasAlerts && (
+                      <div className="mt-3 flex items-center gap-2 text-amber-400 text-sm">
+                        <AlertTriangle size={14} />
+                        <span>Expiration alert</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {equipmentList.filter(equip => {
+                if (equipmentViewFilter === 'all') return true;
+                if (equipmentViewFilter === 'equipment') return !isFacilityType(equip.equipment_type);
+                if (equipmentViewFilter === 'facilities') return isFacilityType(equip.equipment_type);
+                return true;
+              }).length === 0 && (
+                <div className="col-span-full bg-slate-800 rounded-xl p-12 text-center border border-slate-700">
+                  {equipmentViewFilter === 'facilities' ? (
+                    <>
+                      <Building2 size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No facilities added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add facilities like hangar doors, fuel farms, or HVAC systems</p>
+                    </>
+                  ) : equipmentViewFilter === 'equipment' ? (
+                    <>
+                      <Truck size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No equipment added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add vehicles, trucks, or other equipment</p>
+                    </>
+                  ) : (
+                    <>
+                      <Truck size={48} className="mx-auto text-slate-600 mb-4" />
+                      <p className="text-slate-400 text-lg mb-2">No equipment or facilities added yet</p>
+                      <p className="text-slate-500 text-sm mb-4">Add equipment via Settings to start tracking</p>
+                    </>
+                  )}
+                  <button
+                    onClick={() => setShowSettingsModal(true)}
+                    className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-cyan-500 hover:to-blue-500 transition-colors"
+                  >
+                    Open Settings
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Equipment Status Sheet View */}
+        {activeTab === 'equipment' && selectedEquipment && (
+          <div className="space-y-6">
+            {/* Back Button and Header */}
+            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
+              <button
+                onClick={() => setSelectedEquipment(null)}
+                className="flex items-center gap-2 text-slate-400 hover:text-white mb-4 transition-colors"
+              >
+                <ChevronLeft size={20} />
+                Back to {isFacilityType(selectedEquipment.equipment_type) ? 'Facilities' : 'Equipment'} List
+              </button>
+
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={isFacilityType(selectedEquipment.equipment_type) ? 'text-purple-400' : 'text-cyan-400'}>
+                    {getEquipmentIcon(selectedEquipment.equipment_type)}
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">{selectedEquipment.name}</h2>
+                    <p className="text-slate-400">{getEquipmentTypeLabel(selectedEquipment.equipment_type)}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold text-white ${getEquipmentStatusColor(selectedEquipment.status)}`}>
+                    {getEquipmentStatusLabel(selectedEquipment.status)}
+                  </span>
+                </div>
+                <button
+                  onClick={() => openEditEquipment(selectedEquipment)}
+                  className="flex items-center gap-2 bg-slate-700 text-white px-4 py-2 rounded-lg hover:bg-slate-600 transition-colors"
+                >
+                  <Edit2 size={18} />
+                  Edit
+                </button>
+              </div>
+
+              {/* Alert Badges */}
+              {(isDateExpiringSoon(selectedEquipment.registration_renewal_date) ||
+                isDateExpired(selectedEquipment.registration_renewal_date) ||
+                isDateExpiringSoon(selectedEquipment.insurance_expiration) ||
+                isDateExpired(selectedEquipment.insurance_expiration)) && (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {isDateExpired(selectedEquipment.registration_renewal_date) && (
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                      <AlertTriangle size={14} />
+                      Registration Expired
+                    </span>
+                  )}
+                  {!isDateExpired(selectedEquipment.registration_renewal_date) && isDateExpiringSoon(selectedEquipment.registration_renewal_date) && (
+                    <span className="bg-amber-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                      <AlertTriangle size={14} />
+                      Registration Expiring Soon
+                    </span>
+                  )}
+                  {isDateExpired(selectedEquipment.insurance_expiration) && (
+                    <span className="bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                      <AlertTriangle size={14} />
+                      Insurance Expired
+                    </span>
+                  )}
+                  {!isDateExpired(selectedEquipment.insurance_expiration) && isDateExpiringSoon(selectedEquipment.insurance_expiration) && (
+                    <span className="bg-amber-600 text-white px-3 py-1 rounded-lg text-sm font-semibold flex items-center gap-1">
+                      <AlertTriangle size={14} />
+                      Insurance Expiring Soon
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Admin Data Section */}
+            <div className={`bg-slate-800 rounded-xl p-6 border ${isFacilityType(selectedEquipment.equipment_type) ? 'border-purple-700' : 'border-slate-700'}`}>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                {isFacilityType(selectedEquipment.equipment_type) ? 'Facility Details' : 'Equipment Details'}
+              </h3>
+
+              {/* Facility-specific fields */}
+              {isFacilityType(selectedEquipment.equipment_type) && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-slate-400 text-sm">Type</p>
+                      <p className="text-white">{getEquipmentTypeLabel(selectedEquipment.equipment_type)}</p>
+                    </div>
+                    {selectedEquipment.ownership && (
+                      <div>
+                        <p className="text-slate-400 text-sm">Ownership</p>
+                        <p className="text-white">{getOwnershipLabel(selectedEquipment.ownership)}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-slate-400 text-sm">Condition</p>
+                      <p className="text-white">{getEquipmentStatusLabel(selectedEquipment.status)}</p>
+                    </div>
+                    {selectedEquipment.acquisition_date && (
+                      <div>
+                        <p className="text-slate-400 text-sm">Acquisition Date</p>
+                        <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedEquipment.description && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Description</p>
+                      <p className="text-white">{selectedEquipment.description}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Equipment-specific fields */}
+              {!isFacilityType(selectedEquipment.equipment_type) && (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {selectedEquipment.year && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Year</p>
+                      <p className="text-white">{selectedEquipment.year}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.make && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Make</p>
+                      <p className="text-white">{selectedEquipment.make}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.model && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Model</p>
+                      <p className="text-white">{selectedEquipment.model}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.vin && (
+                    <div>
+                      <p className="text-slate-400 text-sm">VIN</p>
+                      <p className="text-white font-mono text-sm">{selectedEquipment.vin}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.license_plate && (
+                    <div>
+                      <p className="text-slate-400 text-sm">License Plate</p>
+                      <p className="text-white">{selectedEquipment.license_plate}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.mileage_hours && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Mileage/Hours</p>
+                      <p className="text-white">{selectedEquipment.mileage_hours.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.acquisition_date && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Acquisition Date</p>
+                      <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.registration_date && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Registration Date</p>
+                      <p className="text-white">{new Date(selectedEquipment.registration_date).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {selectedEquipment.registration_renewal_date && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Registration Renewal</p>
+                      <p className={`${isDateExpired(selectedEquipment.registration_renewal_date) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.registration_renewal_date) ? 'text-amber-400' : 'text-white'}`}>
+                        {new Date(selectedEquipment.registration_renewal_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                  {selectedEquipment.insurance_expiration && (
+                    <div>
+                      <p className="text-slate-400 text-sm">Insurance Expiration</p>
+                      <p className={`${isDateExpired(selectedEquipment.insurance_expiration) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.insurance_expiration) ? 'text-amber-400' : 'text-white'}`}>
+                        {new Date(selectedEquipment.insurance_expiration).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {selectedEquipment.notes && (
+                <div className="mt-4">
+                  <p className="text-slate-400 text-sm">Notes</p>
+                  <p className="text-white">{selectedEquipment.notes}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Upcoming Services */}
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <Clock size={20} className="text-blue-400" />
+                Upcoming Services ({getUpcomingServices(selectedEquipment.name).length})
+              </h3>
+              {getUpcomingServices(selectedEquipment.name).length > 0 ? (
+                <div className="space-y-3">
+                  {getUpcomingServices(selectedEquipment.name).map(task => (
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4 flex justify-between items-center">
+                      <div>
+                        <p className="text-white font-medium">{task.title}</p>
+                        <div className="flex gap-2 mt-1">
+                          {task.due_date && (
+                            <span className="text-slate-400 text-sm flex items-center gap-1">
+                              <Calendar size={12} />
+                              {new Date(task.due_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => openEditTask(task)}
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400">No upcoming services scheduled</p>
+              )}
+            </div>
+
+            {/* Current Faults */}
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <AlertTriangle size={20} className="text-red-400" />
+                Current Faults ({getCurrentFaults(selectedEquipment.name).length})
+              </h3>
+              {getCurrentFaults(selectedEquipment.name).length > 0 ? (
+                <div className="space-y-3">
+                  {getCurrentFaults(selectedEquipment.name).map(task => (
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4 flex justify-between items-center border-l-4 border-red-500">
+                      <div>
+                        <p className="text-white font-medium">{task.title}</p>
+                        <div className="flex gap-2 mt-1">
+                          {task.due_date && (
+                            <span className="text-slate-400 text-sm flex items-center gap-1">
+                              <Calendar size={12} />
+                              {new Date(task.due_date).toLocaleDateString()}
+                            </span>
+                          )}
+                          <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => openEditTask(task)}
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-slate-600 rounded-lg transition-all"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400">No current faults reported</p>
+              )}
+            </div>
+
+            {/* Service History */}
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <History size={20} className="text-green-400" />
+                Service History ({getServiceHistory(selectedEquipment.name).length})
+              </h3>
+              {getServiceHistory(selectedEquipment.name).length > 0 ? (
+                <div className="space-y-3">
+                  {getServiceHistory(selectedEquipment.name).slice(0, 10).map(task => (
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-white font-medium">{task.title}</p>
+                          <p className="text-slate-400 text-sm mt-1">
+                            Completed: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">Completed</span>
+                      </div>
+                    </div>
+                  ))}
+                  {getServiceHistory(selectedEquipment.name).length > 10 && (
+                    <p className="text-slate-400 text-sm text-center">
+                      + {getServiceHistory(selectedEquipment.name).length - 10} more entries
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-slate-400">No service history</p>
+              )}
+            </div>
+
+            {/* Fault History */}
+            <div className="bg-slate-800 rounded-xl p-6 border border-slate-700">
+              <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <History size={20} className="text-amber-400" />
+                Fault History ({getFaultHistory(selectedEquipment.name).length})
+              </h3>
+              {getFaultHistory(selectedEquipment.name).length > 0 ? (
+                <div className="space-y-3">
+                  {getFaultHistory(selectedEquipment.name).slice(0, 10).map(task => (
+                    <div key={task.id} className="bg-slate-700 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-white font-medium">{task.title}</p>
+                          <p className="text-slate-400 text-sm mt-1">
+                            Resolved: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
+                          </p>
+                        </div>
+                        <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">Resolved</span>
+                      </div>
+                    </div>
+                  ))}
+                  {getFaultHistory(selectedEquipment.name).length > 10 && (
+                    <p className="text-slate-400 text-sm text-center">
+                      + {getFaultHistory(selectedEquipment.name).length - 10} more entries
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-slate-400">No fault history</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Equipment Edit Modal */}
+      {showEquipmentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`bg-slate-800 rounded-xl shadow-2xl max-w-2xl w-full border ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} flex flex-col`} style={{maxHeight: 'calc(100vh - 4rem)'}}>
+            <div className={`bg-slate-800 border-b ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-6 flex justify-between items-center flex-shrink-0`}>
+              <h2 className="text-2xl font-bold text-white">
+                {editingEquipment
+                  ? (isFacilityType(equipmentForm.equipment_type) ? 'Edit Facility' : 'Edit Equipment')
+                  : (isFacilityType(equipmentForm.equipment_type) ? 'Add Facility' : 'Add Equipment')
+                }
+              </h2>
+              <button
+                onClick={() => setShowEquipmentModal(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 flex-1" style={{overflowY: 'auto'}}>
+              <div>
+                <label className="block text-white font-medium mb-2">
+                  {isFacilityType(equipmentForm.equipment_type) ? 'Facility Name *' : 'Equipment Name *'}
+                </label>
+                <input
+                  type="text"
+                  value={equipmentForm.name}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, name: e.target.value})}
+                  placeholder={isFacilityType(equipmentForm.equipment_type) ? 'Enter facility name...' : 'Enter equipment name...'}
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-white font-medium mb-2">Type</label>
+                  <select
+                    value={equipmentForm.equipment_type}
+                    onChange={(e) => setEquipmentForm({...equipmentForm, equipment_type: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    <optgroup label="Equipment">
+                      {vehicleEquipmentTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                    </optgroup>
+                    <optgroup label="Facilities">
+                      {facilityTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-white font-medium mb-2">
+                    {isFacilityType(equipmentForm.equipment_type) ? 'Condition' : 'Status'}
+                  </label>
+                  <select
+                    value={equipmentForm.status}
+                    onChange={(e) => setEquipmentForm({...equipmentForm, status: e.target.value})}
+                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  >
+                    {equipmentStatuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Facility-specific fields */}
+              {isFacilityType(equipmentForm.equipment_type) && (
+                <>
+                  <div>
+                    <label className="block text-white font-medium mb-2">Ownership</label>
+                    <select
+                      value={equipmentForm.ownership}
+                      onChange={(e) => setEquipmentForm({...equipmentForm, ownership: e.target.value})}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      {ownershipOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-white font-medium mb-2">Description</label>
+                    <textarea
+                      value={equipmentForm.description}
+                      onChange={(e) => setEquipmentForm({...equipmentForm, description: e.target.value})}
+                      placeholder="Describe the facility, its purpose, and key details..."
+                      rows={3}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-white font-medium mb-2">Acquisition Date</label>
+                    <input
+                      type="date"
+                      value={equipmentForm.acquisition_date}
+                      onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Equipment-specific fields */}
+              {!isFacilityType(equipmentForm.equipment_type) && (
+                <>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-white font-medium mb-2">Year</label>
+                      <input
+                        type="number"
+                        value={equipmentForm.year}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, year: e.target.value})}
+                        placeholder="e.g., 2020"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">Make</label>
+                      <input
+                        type="text"
+                        value={equipmentForm.make}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, make: e.target.value})}
+                        placeholder="e.g., Ford"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">Model</label>
+                      <input
+                        type="text"
+                        value={equipmentForm.model}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, model: e.target.value})}
+                        placeholder="e.g., F-550"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white font-medium mb-2">VIN</label>
+                      <input
+                        type="text"
+                        value={equipmentForm.vin}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, vin: e.target.value})}
+                        placeholder="Vehicle Identification Number"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">License Plate</label>
+                      <input
+                        type="text"
+                        value={equipmentForm.license_plate}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, license_plate: e.target.value})}
+                        placeholder="e.g., ABC-1234"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-white font-medium mb-2">Acquisition Date</label>
+                      <input
+                        type="date"
+                        value={equipmentForm.acquisition_date}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">Mileage/Hours</label>
+                      <input
+                        type="number"
+                        value={equipmentForm.mileage_hours}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, mileage_hours: e.target.value})}
+                        placeholder="Current mileage or hours"
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-white font-medium mb-2">Registration Date</label>
+                      <input
+                        type="date"
+                        value={equipmentForm.registration_date}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, registration_date: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">Registration Renewal</label>
+                      <input
+                        type="date"
+                        value={equipmentForm.registration_renewal_date}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, registration_renewal_date: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-white font-medium mb-2">Insurance Expiration</label>
+                      <input
+                        type="date"
+                        value={equipmentForm.insurance_expiration}
+                        onChange={(e) => setEquipmentForm({...equipmentForm, insurance_expiration: e.target.value})}
+                        className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div>
+                <label className="block text-white font-medium mb-2">Notes</label>
+                <textarea
+                  value={equipmentForm.notes}
+                  onChange={(e) => setEquipmentForm({...equipmentForm, notes: e.target.value})}
+                  placeholder="Additional notes..."
+                  rows={3}
+                  className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+            </div>
+
+            <div className={`sticky bottom-0 bg-slate-800 border-t ${isFacilityType(equipmentForm.equipment_type) ? 'border-purple-700' : 'border-slate-700'} p-4 flex justify-end gap-3 flex-shrink-0`}>
+              <button
+                onClick={() => setShowEquipmentModal(false)}
+                className="bg-slate-700 text-white px-6 py-2 rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveEquipment}
+                className={`text-white px-6 py-2 rounded-lg transition-colors ${
+                  isFacilityType(equipmentForm.equipment_type)
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'
+                    : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500'
+                }`}
+              >
+                {editingEquipment ? 'Save Changes' : (isFacilityType(equipmentForm.equipment_type) ? 'Add Facility' : 'Add Equipment')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Task Modal */}
       {showTaskModal && (
@@ -1224,7 +2285,7 @@ const AirportTaskTracker = () => {
                   className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="">None</option>
-                  {equipment.map(e => <option key={e} value={e}>{e}</option>)}
+                  {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
                 </select>
               </div>
 
@@ -1249,17 +2310,59 @@ const AirportTaskTracker = () => {
                   Recurring Task
                 </label>
                 {taskForm.isRecurring && (
-                  <select
-                    value={taskForm.recurringInterval}
-                    onChange={(e) => setTaskForm({...taskForm, recurringInterval: e.target.value})}
-                    className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly</option>
-                    <option value="annually">Annually</option>
-                  </select>
+                  <div className="space-y-3">
+                    <select
+                      value={taskForm.recurringInterval}
+                      onChange={(e) => setTaskForm({...taskForm, recurringInterval: e.target.value})}
+                      className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="quarterly">Quarterly</option>
+                      <option value="annually">Annually</option>
+                    </select>
+
+                    {/* Day of week selector for weekly */}
+                    {taskForm.recurringInterval === 'weekly' && (
+                      <div>
+                        <label className="block text-slate-300 text-sm mb-1">Repeat on</label>
+                        <select
+                          value={taskForm.recurringDayOfWeek ?? 1}
+                          onChange={(e) => setTaskForm({...taskForm, recurringDayOfWeek: parseInt(e.target.value)})}
+                          className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                          {daysOfWeek.map(day => (
+                            <option key={day.id} value={day.id}>{day.label}</option>
+                          ))}
+                        </select>
+                        <p className="text-slate-400 text-xs mt-1">
+                          Weekly on {getDayOfWeekLabel(taskForm.recurringDayOfWeek)}s
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Day of month selector for monthly/quarterly/annually */}
+                    {['monthly', 'quarterly', 'annually'].includes(taskForm.recurringInterval) && (
+                      <div>
+                        <label className="block text-slate-300 text-sm mb-1">Repeat on day</label>
+                        <select
+                          value={taskForm.recurringDayOfMonth ?? 1}
+                          onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
+                          className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        >
+                          {daysOfMonth.map(day => (
+                            <option key={day.id} value={day.id}>{day.label}</option>
+                          ))}
+                        </select>
+                        <p className="text-slate-400 text-xs mt-1">
+                          {taskForm.recurringInterval === 'monthly' && `Monthly on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
+                          {taskForm.recurringInterval === 'quarterly' && `Quarterly on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
+                          {taskForm.recurringInterval === 'annually' && `Annually on the ${taskForm.recurringDayOfMonth}${getOrdinalSuffix(taskForm.recurringDayOfMonth ?? 1)}`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1434,38 +2537,42 @@ const AirportTaskTracker = () => {
               {/* Equipment/Facilities Section */}
               <div>
                 <h3 className="text-xl font-semibold text-white mb-4">Equipment & Facilities</h3>
-                <div className="flex gap-2 mb-4">
-                  <input
-                    type="text"
-                    value={newEquipment}
-                    onChange={(e) => setNewEquipment(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addEquipment()}
-                    placeholder="Enter equipment or facility name..."
-                    className="flex-1 bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-400"
-                  />
+                <div className="mb-4">
                   <button
-                    onClick={addEquipment}
+                    onClick={() => openAddEquipment()}
                     className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-4 py-2 rounded-lg hover:from-cyan-500 hover:to-blue-500 transition-colors flex items-center gap-2"
                   >
                     <Plus size={18} />
-                    Add
+                    Add Equipment
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {equipment.map((equip) => (
-                    <div key={equip} className="bg-slate-700 border border-slate-600 rounded-lg p-3 flex justify-between items-center gap-2">
-                      <span className="text-white font-medium">🔧 {equip}</span>
-                      <button
-                        onClick={() => removeEquipment(equip)}
-                        className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer flex-shrink-0"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  {equipmentList.map((equip) => (
+                    <div key={equip.id} className="bg-slate-700 border border-slate-600 rounded-lg p-3 flex justify-between items-center gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-3 h-3 rounded-full ${getEquipmentStatusColor(equip.status)}`}></span>
+                        <span className="text-white font-medium">{equip.name}</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => openEditEquipment(equip)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer"
+                          title="Edit"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => removeEquipment(equip.name)}
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-slate-600 rounded cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
-                {equipment.length === 0 && (
+                {equipmentList.length === 0 && (
                   <p className="text-slate-400 text-center py-4">No equipment or facilities added yet</p>
                 )}
               </div>

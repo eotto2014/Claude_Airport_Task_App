@@ -22,6 +22,8 @@ export interface Task {
   notes: string
   is_recurring: boolean
   recurring_interval: string
+  recurring_day_of_week: number | null
+  recurring_day_of_month: number | null
   is_major_task: boolean
   parent_task_id: number | null
   display_order: number
@@ -48,5 +50,20 @@ export interface TeamMember {
 export interface Equipment {
   id: number
   name: string
+  equipment_type: string
+  year: number | null
+  make: string | null
+  model: string | null
+  vin: string | null
+  license_plate: string | null
+  acquisition_date: string | null
+  mileage_hours: number | null
+  registration_date: string | null
+  registration_renewal_date: string | null
+  insurance_expiration: string | null
+  status: string
+  notes: string | null
+  description: string | null
+  ownership: string | null
   created_at: string
 }
