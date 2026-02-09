@@ -1208,14 +1208,14 @@ const AirportTaskTracker = () => {
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSettingsModal(true)}
-                className="flex items-center gap-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all shadow border border-gray-200"
+                className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-all shadow border border-gray-200"
               >
                 <Settings size={20} />
                 Settings
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all shadow border border-gray-200"
+                className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-all shadow border border-gray-200"
               >
                 <Printer size={20} />
                 Print
@@ -1237,7 +1237,7 @@ const AirportTaskTracker = () => {
               className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow ${
                 activeTab === 'active'
                   ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg shadow-cyan-500/20 scale-105'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md border border-gray-200'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-500 hover:text-gray-800 hover:shadow-md border border-gray-200'
               }`}
             >
               Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
@@ -1247,7 +1247,7 @@ const AirportTaskTracker = () => {
               className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow flex items-center gap-2 ${
                 activeTab === 'equipment'
                   ? 'bg-gradient-to-r from-cyan-600 to-teal-600 text-white shadow-lg shadow-cyan-500/20 scale-105'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md border border-gray-200'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-500 hover:text-gray-800 hover:shadow-md border border-gray-200'
               }`}
             >
               <Truck size={18} />
@@ -1258,7 +1258,7 @@ const AirportTaskTracker = () => {
               className={`px-6 py-3 font-semibold rounded-xl transition-all duration-200 shadow ${
                 activeTab === 'completed'
                   ? 'bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-lg shadow-teal-500/20 scale-105'
-                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800 hover:shadow-md border border-gray-200'
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-500 hover:text-gray-800 hover:shadow-md border border-gray-200'
               }`}
             >
               Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
@@ -1282,7 +1282,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.category}
               onChange={(e) => setFilters({...filters, category: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Categories</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
@@ -1291,7 +1291,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({...filters, priority: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Priorities</option>
               {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -1300,7 +1300,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.assignee}
               onChange={(e) => setFilters({...filters, assignee: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Team Members</option>
               {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
@@ -1309,7 +1309,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.status}
               onChange={(e) => setFilters({...filters, status: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Statuses</option>
               {statuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
@@ -1318,7 +1318,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.equipment}
               onChange={(e) => setFilters({...filters, equipment: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Equipment</option>
               {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
@@ -1327,7 +1327,7 @@ const AirportTaskTracker = () => {
             <select
               value={filters.dueDate}
               onChange={(e) => setFilters({...filters, dueDate: e.target.value})}
-              className="bg-gray-300 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
+              className="bg-gray-400 border border-gray-200 text-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400"
             >
               <option value="all">All Due Dates</option>
               <option value="today">Due Today</option>
@@ -1340,7 +1340,7 @@ const AirportTaskTracker = () => {
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 sortBy === 'date'
                   ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-lg'
-                  : 'bg-gray-300 text-gray-600 hover:bg-gray-300 border border-gray-200'
+                  : 'bg-gray-400 text-gray-600 hover:bg-gray-500 border border-gray-200'
               }`}
               title={sortBy === 'date' ? 'Click to enable custom order (drag & drop)' : 'Click to sort by due date'}
             >
@@ -1417,7 +1417,7 @@ const AirportTaskTracker = () => {
                             </span>
                           )}
                           {task.due_date && (
-                            <span className="badge bg-gray-3000 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
+                            <span className="badge bg-gray-4000 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
                               <Calendar size={12} />
                               {new Date(task.due_date).toLocaleDateString()}
                             </span>
@@ -1454,7 +1454,7 @@ const AirportTaskTracker = () => {
                             className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
                               task.status === status.id
                                 ? 'bg-cyan-500 text-white shadow-lg'
-                                : 'bg-gray-300 text-gray-600 hover:bg-gray-400 border border-gray-200'
+                                : 'bg-gray-400 text-gray-600 hover:bg-gray-500 border border-gray-200'
                             }`}
                           >
                             {status.label}
@@ -1527,7 +1527,7 @@ const AirportTaskTracker = () => {
                           onDragOver={handleSubtaskDragOver}
                           onDrop={(e) => handleSubtaskDrop(e, subtask, task)}
                           onDragEnd={handleSubtaskDragEnd}
-                          className={`bg-gray-300 rounded-lg p-4 border-l-4 border-cyan-400 shadow-sm ${draggedSubtask?.id === subtask.id ? 'opacity-50' : ''}`}
+                          className={`bg-gray-400 rounded-lg p-4 border-l-4 border-cyan-400 shadow-sm ${draggedSubtask?.id === subtask.id ? 'opacity-50' : ''}`}
                         >
                           <div className="flex items-start gap-4">
                             {/* Drag Handle for Subtasks */}
@@ -1573,7 +1573,7 @@ const AirportTaskTracker = () => {
                                     className={`px-2 py-1 rounded text-xs font-medium transition-all ${
                                       subtask.status === status.id
                                         ? 'bg-cyan-500 text-white shadow'
-                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-300 border border-gray-200'
+                                        : 'bg-gray-200 text-gray-600 hover:bg-gray-500 border border-gray-200'
                                     }`}
                                   >
                                     {status.label}
@@ -1636,7 +1636,7 @@ const AirportTaskTracker = () => {
                   className={`px-4 py-2 rounded-lg font-medium transition-all ${
                     equipmentViewFilter === 'all'
                       ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                      : 'bg-gray-400 text-gray-600 hover:bg-gray-500'
                   }`}
                 >
                   All ({equipmentList.length})
@@ -1646,7 +1646,7 @@ const AirportTaskTracker = () => {
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     equipmentViewFilter === 'equipment'
                       ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                      : 'bg-gray-400 text-gray-600 hover:bg-gray-500'
                   }`}
                 >
                   <Truck size={16} />
@@ -1657,7 +1657,7 @@ const AirportTaskTracker = () => {
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     equipmentViewFilter === 'facilities'
                       ? 'bg-cyan-500 text-white shadow'
-                      : 'bg-gray-300 text-gray-600 hover:bg-gray-400'
+                      : 'bg-gray-400 text-gray-600 hover:bg-gray-500'
                   }`}
                 >
                   <Building2 size={16} />
@@ -1806,7 +1806,7 @@ const AirportTaskTracker = () => {
                 </div>
                 <button
                   onClick={() => openEditEquipment(selectedEquipment)}
-                  className="flex items-center gap-2 bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors border border-gray-200"
+                  className="flex items-center gap-2 bg-gray-400 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-500 transition-colors border border-gray-200"
                 >
                   <Edit2 size={18} />
                   Edit
@@ -1988,7 +1988,7 @@ const AirportTaskTracker = () => {
               {getUpcomingServices(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getUpcomingServices(selectedEquipment.name).map(task => (
-                    <div key={task.id} className="bg-gray-300 rounded-lg p-4 flex justify-between items-center">
+                    <div key={task.id} className="bg-gray-400 rounded-lg p-4 flex justify-between items-center">
                       <div>
                         <p className="text-gray-800 font-medium">{task.title}</p>
                         <div className="flex gap-2 mt-1">
@@ -2003,7 +2003,7 @@ const AirportTaskTracker = () => {
                       </div>
                       <button
                         onClick={() => openEditTask(task)}
-                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-300 rounded-lg transition-all"
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-500 rounded-lg transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -2024,7 +2024,7 @@ const AirportTaskTracker = () => {
               {getCurrentFaults(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getCurrentFaults(selectedEquipment.name).map(task => (
-                    <div key={task.id} className="bg-gray-300 rounded-lg p-4 flex justify-between items-center border-l-4 border-red-500">
+                    <div key={task.id} className="bg-gray-400 rounded-lg p-4 flex justify-between items-center border-l-4 border-red-500">
                       <div>
                         <p className="text-gray-800 font-medium">{task.title}</p>
                         <div className="flex gap-2 mt-1">
@@ -2039,7 +2039,7 @@ const AirportTaskTracker = () => {
                       </div>
                       <button
                         onClick={() => openEditTask(task)}
-                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-300 rounded-lg transition-all"
+                        className="text-blue-400 hover:text-blue-300 p-2 hover:bg-gray-500 rounded-lg transition-all"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -2060,7 +2060,7 @@ const AirportTaskTracker = () => {
               {getServiceHistory(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getServiceHistory(selectedEquipment.name).slice(0, 10).map(task => (
-                    <div key={task.id} className="bg-gray-300 rounded-lg p-4">
+                    <div key={task.id} className="bg-gray-400 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-gray-800 font-medium">{task.title}</p>
@@ -2092,7 +2092,7 @@ const AirportTaskTracker = () => {
               {getFaultHistory(selectedEquipment.name).length > 0 ? (
                 <div className="space-y-3">
                   {getFaultHistory(selectedEquipment.name).slice(0, 10).map(task => (
-                    <div key={task.id} className="bg-gray-300 rounded-lg p-4">
+                    <div key={task.id} className="bg-gray-400 rounded-lg p-4">
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="text-gray-800 font-medium">{task.title}</p>
@@ -2147,7 +2147,7 @@ const AirportTaskTracker = () => {
                   value={equipmentForm.name}
                   onChange={(e) => setEquipmentForm({...equipmentForm, name: e.target.value})}
                   placeholder={isFacilityType(equipmentForm.equipment_type) ? 'Enter facility name...' : 'Enter equipment name...'}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2157,7 +2157,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={equipmentForm.equipment_type}
                     onChange={(e) => setEquipmentForm({...equipmentForm, equipment_type: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     <optgroup label="Equipment">
                       {vehicleEquipmentTypes.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
@@ -2175,7 +2175,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={equipmentForm.status}
                     onChange={(e) => setEquipmentForm({...equipmentForm, status: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {equipmentStatuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
@@ -2190,7 +2190,7 @@ const AirportTaskTracker = () => {
                     <select
                       value={equipmentForm.ownership}
                       onChange={(e) => setEquipmentForm({...equipmentForm, ownership: e.target.value})}
-                      className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       {ownershipOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
                     </select>
@@ -2203,7 +2203,7 @@ const AirportTaskTracker = () => {
                       onChange={(e) => setEquipmentForm({...equipmentForm, description: e.target.value})}
                       placeholder="Describe the facility, its purpose, and key details..."
                       rows={3}
-                      className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
 
@@ -2213,7 +2213,7 @@ const AirportTaskTracker = () => {
                       type="date"
                       value={equipmentForm.acquisition_date}
                       onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
-                      className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                   </div>
                 </>
@@ -2230,7 +2230,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.year}
                         onChange={(e) => setEquipmentForm({...equipmentForm, year: e.target.value})}
                         placeholder="e.g., 2020"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2241,7 +2241,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.make}
                         onChange={(e) => setEquipmentForm({...equipmentForm, make: e.target.value})}
                         placeholder="e.g., Ford"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2252,7 +2252,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.model}
                         onChange={(e) => setEquipmentForm({...equipmentForm, model: e.target.value})}
                         placeholder="e.g., F-550"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2265,7 +2265,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.vin}
                         onChange={(e) => setEquipmentForm({...equipmentForm, vin: e.target.value})}
                         placeholder="Vehicle Identification Number"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2276,7 +2276,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.license_plate}
                         onChange={(e) => setEquipmentForm({...equipmentForm, license_plate: e.target.value})}
                         placeholder="e.g., ABC-1234"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2288,7 +2288,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.acquisition_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, acquisition_date: e.target.value})}
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2299,7 +2299,7 @@ const AirportTaskTracker = () => {
                         value={equipmentForm.mileage_hours}
                         onChange={(e) => setEquipmentForm({...equipmentForm, mileage_hours: e.target.value})}
                         placeholder="Current mileage or hours"
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2311,7 +2311,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.registration_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, registration_date: e.target.value})}
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2321,7 +2321,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.registration_renewal_date}
                         onChange={(e) => setEquipmentForm({...equipmentForm, registration_renewal_date: e.target.value})}
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
 
@@ -2331,7 +2331,7 @@ const AirportTaskTracker = () => {
                         type="date"
                         value={equipmentForm.insurance_expiration}
                         onChange={(e) => setEquipmentForm({...equipmentForm, insurance_expiration: e.target.value})}
-                        className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                        className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                       />
                     </div>
                   </div>
@@ -2345,7 +2345,7 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setEquipmentForm({...equipmentForm, notes: e.target.value})}
                   placeholder="Additional notes..."
                   rows={3}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
@@ -2353,7 +2353,7 @@ const AirportTaskTracker = () => {
             <div className={`sticky bottom-0 bg-gray-200 border-t ${isFacilityType(equipmentForm.equipment_type) ? 'border-teal-200' : 'border-gray-200'} p-4 flex justify-end gap-3 flex-shrink-0`}>
               <button
                 onClick={() => setShowEquipmentModal(false)}
-                className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-400 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors"
               >
                 Cancel
               </button>
@@ -2396,7 +2396,7 @@ const AirportTaskTracker = () => {
                   value={taskForm.title}
                   onChange={(e) => setTaskForm({...taskForm, title: e.target.value})}
                   placeholder="Enter task title..."
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2406,7 +2406,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.category}
                     onChange={(e) => setTaskForm({...taskForm, category: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
                   </select>
@@ -2417,7 +2417,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.priority}
                     onChange={(e) => setTaskForm({...taskForm, priority: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {priorities.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                   </select>
@@ -2430,7 +2430,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.assignee}
                     onChange={(e) => setTaskForm({...taskForm, assignee: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     <option value="">Unassigned</option>
                     {teamMembers.map(m => <option key={m} value={m}>{m}</option>)}
@@ -2442,7 +2442,7 @@ const AirportTaskTracker = () => {
                   <select
                     value={taskForm.status}
                     onChange={(e) => setTaskForm({...taskForm, status: e.target.value})}
-                    className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                   >
                     {statuses.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
                   </select>
@@ -2454,7 +2454,7 @@ const AirportTaskTracker = () => {
                 <select
                   value={taskForm.equipment}
                   onChange={(e) => setTaskForm({...taskForm, equipment: e.target.value})}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 >
                   <option value="">None</option>
                   {equipmentList.map(e => <option key={e.id} value={e.name}>{e.name}</option>)}
@@ -2467,7 +2467,7 @@ const AirportTaskTracker = () => {
                   type="date"
                   value={taskForm.dueDate}
                   onChange={(e) => setTaskForm({...taskForm, dueDate: e.target.value})}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
 
@@ -2486,7 +2486,7 @@ const AirportTaskTracker = () => {
                     <select
                       value={taskForm.recurringInterval}
                       onChange={(e) => setTaskForm({...taskForm, recurringInterval: e.target.value})}
-                      className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                      className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     >
                       <option value="daily">Daily</option>
                       <option value="weekly">Weekly</option>
@@ -2502,7 +2502,7 @@ const AirportTaskTracker = () => {
                         <select
                           value={taskForm.recurringDayOfWeek ?? 1}
                           onChange={(e) => setTaskForm({...taskForm, recurringDayOfWeek: parseInt(e.target.value)})}
-                          className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         >
                           {daysOfWeek.map(day => (
                             <option key={day.id} value={day.id}>{day.label}</option>
@@ -2521,7 +2521,7 @@ const AirportTaskTracker = () => {
                         <select
                           value={taskForm.recurringDayOfMonth ?? 1}
                           onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                          className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                          className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                         >
                           {daysOfMonth.map(day => (
                             <option key={day.id} value={day.id}>{day.label}</option>
@@ -2541,7 +2541,7 @@ const AirportTaskTracker = () => {
                           <select
                             value={taskForm.recurringMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {quarterMonths.map(qm => (
                               <option key={qm.id} value={qm.id}>{qm.label}</option>
@@ -2553,7 +2553,7 @@ const AirportTaskTracker = () => {
                           <select
                             value={taskForm.recurringDayOfMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {daysOfMonth.map(day => (
                               <option key={day.id} value={day.id}>{day.label}</option>
@@ -2574,7 +2574,7 @@ const AirportTaskTracker = () => {
                           <select
                             value={taskForm.recurringMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {monthsOfYear.map(month => (
                               <option key={month.id} value={month.id}>{month.label}</option>
@@ -2586,7 +2586,7 @@ const AirportTaskTracker = () => {
                           <select
                             value={taskForm.recurringDayOfMonth ?? 1}
                             onChange={(e) => setTaskForm({...taskForm, recurringDayOfMonth: parseInt(e.target.value)})}
-                            className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                            className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                           >
                             {daysOfMonth.map(day => (
                               <option key={day.id} value={day.id}>{day.label}</option>
@@ -2636,7 +2636,7 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setTaskForm({...taskForm, notes: e.target.value})}
                   placeholder="Add additional details..."
                   rows={3}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                 />
               </div>
             </div>
@@ -2644,7 +2644,7 @@ const AirportTaskTracker = () => {
             <div className="sticky bottom-0 bg-gray-200 border-t border-gray-200 p-4 flex justify-end gap-3 flex-shrink-0">
               <button
                 onClick={() => setShowTaskModal(false)}
-                className="bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-400 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors"
               >
                 Cancel
               </button>
@@ -2680,7 +2680,7 @@ const AirportTaskTracker = () => {
               <div className="space-y-3 mb-6">
                 {currentTaskForRemarks.remarks && currentTaskForRemarks.remarks.length > 0 ? (
                   currentTaskForRemarks.remarks.map(remark => (
-                    <div key={remark.id} className="bg-gray-300 rounded-lg p-4 border border-gray-300">
+                    <div key={remark.id} className="bg-gray-400 rounded-lg p-4 border border-gray-300">
                       <p className="text-gray-800 mb-2">{remark.text}</p>
                       <p className="text-gray-500 text-xs">
                         {new Date(remark.timestamp).toLocaleString()}
@@ -2700,7 +2700,7 @@ const AirportTaskTracker = () => {
                   onChange={(e) => setNewRemark(e.target.value)}
                   placeholder="Enter your remark..."
                   rows={3}
-                  className="w-full bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-3"
+                  className="w-full bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-3"
                 />
                 <button
                   onClick={addRemark}
@@ -2741,7 +2741,7 @@ const AirportTaskTracker = () => {
                     onChange={(e) => setNewTeamMember(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && addTeamMember()}
                     placeholder="Enter team member name..."
-                    className="flex-1 bg-gray-300 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-400"
+                    className="flex-1 bg-gray-400 border border-gray-300 text-gray-800 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-slate-400"
                   />
                   <button
                     onClick={addTeamMember}
@@ -2753,11 +2753,11 @@ const AirportTaskTracker = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {teamMembers.map((member) => (
-                    <div key={member} className="bg-gray-300 border border-gray-300 rounded-lg p-3 flex justify-between items-center gap-2">
+                    <div key={member} className="bg-gray-400 border border-gray-300 rounded-lg p-3 flex justify-between items-center gap-2">
                       <span className="text-gray-800 font-medium">👤 {member}</span>
                       <button
                         onClick={() => removeTeamMember(member)}
-                        className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-300 rounded cursor-pointer flex-shrink-0"
+                        className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer flex-shrink-0"
                         title="Delete"
                       >
                         <Trash2 size={16} />
@@ -2784,7 +2784,7 @@ const AirportTaskTracker = () => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {equipmentList.map((equip) => (
-                    <div key={equip.id} className="bg-gray-300 border border-gray-300 rounded-lg p-3 flex justify-between items-center gap-2">
+                    <div key={equip.id} className="bg-gray-400 border border-gray-300 rounded-lg p-3 flex justify-between items-center gap-2">
                       <div className="flex items-center gap-2">
                         <span className={`w-3 h-3 rounded-full ${getEquipmentStatusColor(equip.status)}`}></span>
                         <span className="text-gray-800 font-medium">{equip.name}</span>
@@ -2792,14 +2792,14 @@ const AirportTaskTracker = () => {
                       <div className="flex gap-1">
                         <button
                           onClick={() => openEditEquipment(equip)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-gray-300 rounded cursor-pointer"
+                          className="text-blue-400 hover:text-blue-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer"
                           title="Edit"
                         >
                           <Edit2 size={16} />
                         </button>
                         <button
                           onClick={() => removeEquipment(equip.name)}
-                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-300 rounded cursor-pointer"
+                          className="text-red-400 hover:text-red-300 transition-colors p-2 hover:bg-gray-500 rounded cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 size={16} />
@@ -2857,7 +2857,7 @@ const AirportTaskTracker = () => {
 
             <div className="p-6 overflow-y-auto flex-grow">
               {/* Add Part Form */}
-              <div className="bg-gray-300 rounded-lg p-4 mb-6">
+              <div className="bg-gray-400 rounded-lg p-4 mb-6">
                 <h3 className="text-gray-800 font-medium mb-4">Add New Part</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -2917,7 +2917,7 @@ const AirportTaskTracker = () => {
                       </thead>
                       <tbody>
                         {equipmentParts.map(part => (
-                          <tr key={part.id} className="border-b border-gray-200 hover:bg-gray-300/50">
+                          <tr key={part.id} className="border-b border-gray-200 hover:bg-gray-500/50">
                             <td className="py-3 px-4 text-gray-800">{part.part_component}</td>
                             <td className="py-3 px-4 text-gray-800 font-mono">{part.part_number}</td>
                             <td className="py-3 px-4 text-gray-600">{part.last_sourced_from || '-'}</td>
