@@ -145,6 +145,38 @@ const AirportTaskTracker = () => {
     return s[(v - 20) % 10] || s[v] || s[0];
   };
 
+  // Date helpers.
+  // Supabase returns DATE columns as plain 'YYYY-MM-DD' strings. Passing those to
+  // new Date() parses them as UTC midnight, which renders as the previous day in any
+  // timezone behind UTC. These helpers parse date-only values in local time instead.
+  const parseLocalDate = (dateStr: string) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+    if (match) {
+      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+    // Full timestamps (e.g. completed_at) already carry timezone info.
+    return new Date(dateStr);
+  };
+
+  const formatDate = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '';
+    return parseLocalDate(dateStr).toLocaleDateString();
+  };
+
+  // Serialize a local Date back to 'YYYY-MM-DD' for storage. Using toISOString()
+  // here would shift the date by a day in timezones ahead of UTC.
+  const toDateOnlyString = (date: Date) => {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${month}-${day}`;
+  };
+
+  // Today at local midnight, for comparing against date-only values.
+  const startOfToday = () => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  };
+
   const daysOfMonth = Array.from({ length: 31 }, (_, i) => ({
     id: i + 1,
     label: `${i + 1}${getOrdinalSuffix(i + 1)}`,
@@ -197,7 +229,9 @@ const AirportTaskTracker = () => {
   // Load initial data
   useEffect(() => {
     loadData();
-    setupRealtimeSubscriptions();
+    // Returned so React tears the channels down on unmount; without this,
+    // remounts stack up duplicate subscriptions.
+    return setupRealtimeSubscriptions();
   }, []);
 
   const loadData = async () => {
@@ -427,9 +461,11 @@ const AirportTaskTracker = () => {
       .subscribe();
 
     return () => {
-      tasksSubscription.unsubscribe();
-      teamSubscription.unsubscribe();
-      equipmentSubscription.unsubscribe();
+      // removeChannel also drops the channel from the client's registry;
+      // unsubscribe alone leaves the stale channel behind on remount.
+      supabase.removeChannel(tasksSubscription);
+      supabase.removeChannel(teamSubscription);
+      supabase.removeChannel(equipmentSubscription);
     };
   };
 
@@ -514,15 +550,22 @@ const AirportTaskTracker = () => {
 
         if (error) throw error;
       } else {
-        // For new tasks, calculate display_order
-        const { data: existingTasks } = await supabase
+        // For new tasks, calculate display_order.
+        // Top-level tasks have a NULL parent_task_id, which .eq() cannot match —
+        // PostgREST needs .is() for NULL comparisons.
+        let orderQuery = supabase
           .from('tasks')
-          .select('display_order')
-          .eq('parent_task_id', taskForm.parentTaskId || null)
+          .select('display_order');
+
+        orderQuery = taskForm.parentTaskId
+          ? orderQuery.eq('parent_task_id', taskForm.parentTaskId)
+          : orderQuery.is('parent_task_id', null);
+
+        const { data: existingTasks } = await orderQuery
           .order('display_order', { ascending: false })
           .limit(1);
 
-        const maxOrder = existingTasks && existingTasks.length > 0 ? existingTasks[0].display_order : 0;
+        const maxOrder = existingTasks && existingTasks.length > 0 ? (existingTasks[0].display_order || 0) : 0;
         taskData.display_order = maxOrder + 1;
 
         const { error } = await supabase
@@ -599,12 +642,14 @@ const AirportTaskTracker = () => {
         display_order: index + 1
       }));
 
-      for (const update of updates) {
-        await supabase
+      // Issued together; one awaited round-trip per task made reordering a
+      // long list visibly slow.
+      await Promise.all(updates.map(update =>
+        supabase
           .from('tasks')
           .update({ display_order: update.display_order })
-          .eq('id', update.id);
-      }
+          .eq('id', update.id)
+      ));
 
       loadTasks();
     } catch (error) {
@@ -663,12 +708,14 @@ const AirportTaskTracker = () => {
         display_order: index + 1
       }));
 
-      for (const update of updates) {
-        await supabase
+      // Issued together; one awaited round-trip per task made reordering a
+      // long list visibly slow.
+      await Promise.all(updates.map(update =>
+        supabase
           .from('tasks')
           .update({ display_order: update.display_order })
-          .eq('id', update.id);
-      }
+          .eq('id', update.id)
+      ));
 
       loadTasks();
     } catch (error) {
@@ -704,7 +751,7 @@ const AirportTaskTracker = () => {
       // If marking a recurring task as completed, handle it specially
       if (task.is_recurring && newStatus === 'completed') {
         // Calculate next due date based on interval and day settings
-        const currentDueDate = task.due_date ? new Date(task.due_date) : new Date();
+        const currentDueDate = task.due_date ? parseLocalDate(task.due_date) : startOfToday();
         let nextDueDate = new Date(currentDueDate);
 
         switch (task.recurring_interval) {
@@ -770,7 +817,7 @@ const AirportTaskTracker = () => {
             break;
         }
 
-        const formattedNextDueDate = nextDueDate.toISOString().split('T')[0];
+        const formattedNextDueDate = toDateOnlyString(nextDueDate);
 
         // Update the current task to completed
         const { error: updateError } = await supabase
@@ -800,6 +847,11 @@ const AirportTaskTracker = () => {
             recurring_day_of_week: task.recurring_day_of_week,
             recurring_day_of_month: task.recurring_day_of_month,
             recurring_month: task.recurring_month,
+            // Carry the task's identity forward, so the next cycle keeps its place
+            // in the list and stays a major task / subtask.
+            is_major_task: task.is_major_task,
+            parent_task_id: task.parent_task_id,
+            display_order: task.display_order,
           }]);
 
         if (insertError) throw insertError;
@@ -1106,72 +1158,84 @@ const AirportTaskTracker = () => {
 
   const isDateExpiringSoon = (dateStr: string | null, daysThreshold: number = 30) => {
     if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    const daysUntil = Math.ceil((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const date = parseLocalDate(dateStr);
+    const today = startOfToday();
+    const daysUntil = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return daysUntil >= 0 && daysUntil <= daysThreshold;
   };
 
   const isDateExpired = (dateStr: string | null) => {
     if (!dateStr) return false;
-    const date = new Date(dateStr);
-    const today = new Date();
-    return date < today;
+    // A date is expired only once the day itself has passed, not partway through it.
+    return parseLocalDate(dateStr) < startOfToday();
   };
 
-  const getFilteredTasks = () => {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+  // Does a single task pass the active tab and the filter bar?
+  const taskMatchesFilters = (task: Task) => {
+    // Tab filter
+    const tabMatch = activeTab === 'active' ? task.status !== 'completed' : task.status === 'completed';
+    if (!tabMatch) return false;
 
+    // Category filter
+    if (filters.category !== 'all' && task.category !== filters.category) return false;
+
+    // Priority filter
+    if (filters.priority !== 'all' && task.priority !== filters.priority) return false;
+
+    // Assignee filter
+    if (filters.assignee !== 'all' && task.assignee !== filters.assignee) return false;
+
+    // Status filter
+    if (filters.status !== 'all' && task.status !== filters.status) return false;
+
+    // Equipment filter
+    if (filters.equipment !== 'all' && task.equipment !== filters.equipment) return false;
+
+    // Due date filter. A task with no due date can't be "due today/this week/this month",
+    // so it is filtered out rather than passed through.
+    if (filters.dueDate !== 'all') {
+      if (!task.due_date) return false;
+
+      const today = startOfToday();
+      const dueDate = parseLocalDate(task.due_date);
+      const daysUntilDue = Math.round((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+      switch (filters.dueDate) {
+        case 'today':
+          if (daysUntilDue !== 0) return false;
+          break;
+        case 'week':
+          // Overdue tasks stay visible; they are still outstanding work.
+          if (daysUntilDue > 7) return false;
+          break;
+        case 'month':
+          if (daysUntilDue > 30) return false;
+          break;
+      }
+    }
+
+    return true;
+  };
+
+  // Subtasks are rendered nested under their parent, so they need the same
+  // tab/filter treatment the parent list gets.
+  const getVisibleSubtasks = (task: Task) => (task.subtasks || []).filter(taskMatchesFilters);
+
+  const getFilteredTasks = () => {
     // Don't filter tasks when on equipment tab
     if (activeTab === 'equipment') return [];
 
-    let filtered = tasks.filter(task => {
-      // Tab filter
-      const tabMatch = activeTab === 'active' ? task.status !== 'completed' : task.status === 'completed';
-      if (!tabMatch) return false;
-
-      // Category filter
-      if (filters.category !== 'all' && task.category !== filters.category) return false;
-
-      // Priority filter
-      if (filters.priority !== 'all' && task.priority !== filters.priority) return false;
-
-      // Assignee filter
-      if (filters.assignee !== 'all' && task.assignee !== filters.assignee) return false;
-
-      // Status filter
-      if (filters.status !== 'all' && task.status !== filters.status) return false;
-
-      // Equipment filter
-      if (filters.equipment !== 'all' && task.equipment !== filters.equipment) return false;
-
-      // Due date filter
-      if (filters.dueDate !== 'all' && task.due_date) {
-        const dueDate = new Date(task.due_date);
-        switch (filters.dueDate) {
-          case 'today':
-            if (dueDate.toDateString() !== today.toDateString()) return false;
-            break;
-          case 'week':
-            if (dueDate > weekFromNow) return false;
-            break;
-          case 'month':
-            if (dueDate > monthFromNow) return false;
-            break;
-        }
-      }
-
-      return true;
-    });
+    // Keep a parent visible when it matches, or when any of its subtasks match —
+    // otherwise a matching subtask would have nowhere to render.
+    let filtered = tasks.filter(task =>
+      taskMatchesFilters(task) || getVisibleSubtasks(task).length > 0
+    );
 
     // Sort based on sort mode
     if (sortBy === 'date') {
       filtered = filtered.sort((a, b) => {
-        const dateA = a.due_date ? new Date(a.due_date).getTime() : Infinity;
-        const dateB = b.due_date ? new Date(b.due_date).getTime() : Infinity;
+        const dateA = a.due_date ? parseLocalDate(a.due_date).getTime() : Infinity;
+        const dateB = b.due_date ? parseLocalDate(b.due_date).getTime() : Infinity;
         return dateA - dateB;
       });
     } else {
@@ -1192,6 +1256,9 @@ const AirportTaskTracker = () => {
   const getStatusLabel = (id: string) => statuses.find(s => s.id === id)?.label;
 
   const filteredTasks = getFilteredTasks();
+
+  // Subtasks live nested under their parents, so a flat list is needed for counts.
+  const allTasksFlat = tasks.flatMap(t => [t, ...(t.subtasks || [])]);
 
   if (loading) {
     return (
@@ -1246,7 +1313,7 @@ const AirportTaskTracker = () => {
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
-              Active Tasks ({tasks.filter(t => t.status !== 'completed').length})
+              Active Tasks ({allTasksFlat.filter(t => t.status !== 'completed').length})
             </button>
             <button
               onClick={() => { setActiveTab('equipment'); setSelectedEquipment(null); }}
@@ -1267,7 +1334,7 @@ const AirportTaskTracker = () => {
                   : 'bg-slate-700 text-slate-300 hover:bg-slate-600 hover:text-white hover:scale-102 hover:shadow-xl'
               }`}
             >
-              Completed Tasks ({tasks.filter(t => t.status === 'completed').length})
+              Completed Tasks ({allTasksFlat.filter(t => t.status === 'completed').length})
             </button>
           </div>
 
@@ -1369,6 +1436,8 @@ const AirportTaskTracker = () => {
               const isMajorTask = task.is_major_task;
               const hasSubtasks = task.subtasks && task.subtasks.length > 0;
               const completedSubtasks = hasSubtasks ? task.subtasks!.filter(st => st.status === 'completed').length : 0;
+              // Progress is measured against every subtask; only the list below is filtered.
+              const visibleSubtasks = getVisibleSubtasks(task);
 
               return (
                 <div
@@ -1425,7 +1494,7 @@ const AirportTaskTracker = () => {
                           {task.due_date && (
                             <span className="badge bg-slate-600 text-white px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1">
                               <Calendar size={12} />
-                              {new Date(task.due_date).toLocaleDateString()}
+                              {formatDate(task.due_date)}
                             </span>
                           )}
                         </div>
@@ -1519,9 +1588,9 @@ const AirportTaskTracker = () => {
                 </div>
 
                 {/* Subtasks */}
-                {hasSubtasks && (
+                {visibleSubtasks.length > 0 && (
                   <div className="ml-8 mt-2 space-y-2">
-                    {task.subtasks!.map(subtask => {
+                    {visibleSubtasks.map(subtask => {
                       const subCategoryInfo = getCategoryInfo(subtask.category);
                       const subPriorityInfo = getPriorityInfo(subtask.priority);
 
@@ -1930,7 +1999,7 @@ const AirportTaskTracker = () => {
                     {selectedEquipment.acquisition_date && (
                       <div>
                         <p className="text-slate-400 text-sm">Acquisition Date</p>
-                        <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
+                        <p className="text-white">{formatDate(selectedEquipment.acquisition_date)}</p>
                       </div>
                     )}
                   </div>
@@ -1985,20 +2054,20 @@ const AirportTaskTracker = () => {
                   {selectedEquipment.acquisition_date && (
                     <div>
                       <p className="text-slate-400 text-sm">Acquisition Date</p>
-                      <p className="text-white">{new Date(selectedEquipment.acquisition_date).toLocaleDateString()}</p>
+                      <p className="text-white">{formatDate(selectedEquipment.acquisition_date)}</p>
                     </div>
                   )}
                   {selectedEquipment.registration_date && (
                     <div>
                       <p className="text-slate-400 text-sm">Registration Date</p>
-                      <p className="text-white">{new Date(selectedEquipment.registration_date).toLocaleDateString()}</p>
+                      <p className="text-white">{formatDate(selectedEquipment.registration_date)}</p>
                     </div>
                   )}
                   {selectedEquipment.registration_renewal_date && (
                     <div>
                       <p className="text-slate-400 text-sm">Registration Renewal</p>
                       <p className={`${isDateExpired(selectedEquipment.registration_renewal_date) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.registration_renewal_date) ? 'text-amber-400' : 'text-white'}`}>
-                        {new Date(selectedEquipment.registration_renewal_date).toLocaleDateString()}
+                        {formatDate(selectedEquipment.registration_renewal_date)}
                       </p>
                     </div>
                   )}
@@ -2006,7 +2075,7 @@ const AirportTaskTracker = () => {
                     <div>
                       <p className="text-slate-400 text-sm">Insurance Expiration</p>
                       <p className={`${isDateExpired(selectedEquipment.insurance_expiration) ? 'text-red-400' : isDateExpiringSoon(selectedEquipment.insurance_expiration) ? 'text-amber-400' : 'text-white'}`}>
-                        {new Date(selectedEquipment.insurance_expiration).toLocaleDateString()}
+                        {formatDate(selectedEquipment.insurance_expiration)}
                       </p>
                     </div>
                   )}
@@ -2051,7 +2120,7 @@ const AirportTaskTracker = () => {
                           {task.due_date && (
                             <span className="text-slate-400 text-sm flex items-center gap-1">
                               <Calendar size={12} />
-                              {new Date(task.due_date).toLocaleDateString()}
+                              {formatDate(task.due_date)}
                             </span>
                           )}
                           <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
@@ -2087,7 +2156,7 @@ const AirportTaskTracker = () => {
                           {task.due_date && (
                             <span className="text-slate-400 text-sm flex items-center gap-1">
                               <Calendar size={12} />
-                              {new Date(task.due_date).toLocaleDateString()}
+                              {formatDate(task.due_date)}
                             </span>
                           )}
                           <span className="text-slate-400 text-sm">{getStatusLabel(task.status)}</span>
@@ -2121,7 +2190,7 @@ const AirportTaskTracker = () => {
                         <div>
                           <p className="text-white font-medium">{task.title}</p>
                           <p className="text-slate-400 text-sm mt-1">
-                            Completed: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
+                            Completed: {task.completed_at ? formatDate(task.completed_at) : 'N/A'}
                           </p>
                         </div>
                         <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">Completed</span>
@@ -2153,7 +2222,7 @@ const AirportTaskTracker = () => {
                         <div>
                           <p className="text-white font-medium">{task.title}</p>
                           <p className="text-slate-400 text-sm mt-1">
-                            Resolved: {task.completed_at ? new Date(task.completed_at).toLocaleDateString() : 'N/A'}
+                            Resolved: {task.completed_at ? formatDate(task.completed_at) : 'N/A'}
                           </p>
                         </div>
                         <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">Resolved</span>

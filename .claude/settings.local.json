@@ -14,7 +14,10 @@
       "Bash(choco install:*)",
       "Bash(node check-db.js:*)",
       "Bash(node check-db-admin.js:*)",
-      "Bash(gh workflow:*)"
+      "Bash(gh workflow:*)",
+      "Bash(node verify-connection.js:*)",
+      "Bash(supabase db dump:*)",
+      "Bash(supabase --experimental db execute:*)"
     ],
     "deny": [],
     "ask": []
